@@ -1,12 +1,12 @@
 import { vi } from "vitest";
+import { createUndoAction } from "../../packages/excalidraw/actions/actionHistory";
+import { API } from "../../packages/excalidraw/tests/helpers/api";
 import {
   render,
   updateSceneData,
   waitFor,
 } from "../../packages/excalidraw/tests/test-utils";
 import ExcalidrawApp from "../App";
-import { API } from "../../packages/excalidraw/tests/helpers/api";
-import { createUndoAction } from "../../packages/excalidraw/actions/actionHistory";
 const { h } = window;
 
 Object.defineProperty(window, "crypto", {
@@ -58,7 +58,7 @@ vi.mock("socket.io-client", () => {
 
 describe("collaboration", () => {
   it("creating room should reset deleted elements", async () => {
-    await render(<ExcalidrawApp />);
+    await render(<ExcalidrawApp username="test" />);
     // To update the scene with deleted elements before starting collab
     updateSceneData({
       elements: [

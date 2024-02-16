@@ -1,9 +1,9 @@
-import ExcalidrawApp from "../App";
 import {
   mockBoundingClientRect,
   render,
   restoreOriginalGetBoundingClientRect,
 } from "../../packages/excalidraw/tests/test-utils";
+import ExcalidrawApp from "../App";
 
 import { UI } from "../../packages/excalidraw/tests/helpers/ui";
 
@@ -16,7 +16,7 @@ describe("Test MobileMenu", () => {
   });
 
   beforeEach(async () => {
-    await render(<ExcalidrawApp />);
+    await render(<ExcalidrawApp username="test" />);
     // @ts-ignore
     h.app.refreshViewportBreakpoints();
     // @ts-ignore

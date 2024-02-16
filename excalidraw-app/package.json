@@ -1,8 +1,37 @@
 {
-  "name": "excalidraw-app",
+  "name": "@krivega/excalidraw-app",
   "version": "1.0.0",
   "private": true,
   "homepage": ".",
+  "type": "module",
+  "exports": {
+    ".": {
+      "require": "./dist/App.cjs",
+      "import": "./dist/App.mjs"
+    },
+    "./style.css": {
+      "require": "./dist/style.css",
+      "default": "./dist/style.css"
+    },
+    "./dist/*.css": {
+      "import": "./dist/*.css",
+      "require": "./dist/*.css"
+    }
+  },
+  "types": "dist/excalidraw-app/App.d.ts",
+  "typesVersions": {
+    "*": {
+      "dist/excalidraw-app/App.d.ts": [
+        "dist/excalidraw-app/App.d.ts"
+      ],
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "browserslist": {
     "production": [
       ">0.2%",
@@ -31,6 +60,7 @@
     "build-node": "node ./scripts/build-node.js",
     "build:app:docker": "cross-env VITE_APP_DISABLE_SENTRY=true VITE_APP_DISABLE_TRACKING=true vite build",
     "build:app": "cross-env VITE_APP_GIT_SHA=$VERCEL_GIT_COMMIT_SHA vite build",
+    "build:lib": "vite build --config vite.config.lib.mts",
     "build:version": "node ../scripts/build-version.js",
     "build": "yarn build:app && yarn build:version",
     "start": "yarn && vite",

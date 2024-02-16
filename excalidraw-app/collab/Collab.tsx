@@ -1,45 +1,72 @@
+import { atom } from "jotai";
 import throttle from "lodash.throttle";
 import { PureComponent } from "react";
-import {
-  ExcalidrawImperativeAPI,
-  SocketId,
-} from "../../packages/excalidraw/types";
 import { ErrorDialog } from "../../packages/excalidraw/components/ErrorDialog";
-import { APP_NAME, ENV, EVENT } from "../../packages/excalidraw/constants";
+import {
+  ACTIVE_THRESHOLD,
+  APP_NAME,
+  ENV,
+  EVENT,
+  IDLE_THRESHOLD,
+} from "../../packages/excalidraw/constants";
+import { decryptData } from "../../packages/excalidraw/data/encryption";
 import { ImportedDataState } from "../../packages/excalidraw/data/types";
+import { getVisibleSceneBounds } from "../../packages/excalidraw/element/bounds";
+import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
+import {
+  isImageElement,
+  isInitializedImageElement,
+} from "../../packages/excalidraw/element/typeChecks";
 import {
   ExcalidrawElement,
   InitializedExcalidrawImageElement,
 } from "../../packages/excalidraw/element/types";
+import { AbortError } from "../../packages/excalidraw/errors";
+import { t } from "../../packages/excalidraw/i18n";
 import {
   getSceneVersion,
   restoreElements,
   zoomToFitBounds,
 } from "../../packages/excalidraw/index";
-import { Collaborator, Gesture } from "../../packages/excalidraw/types";
+import { withBatchedUpdates } from "../../packages/excalidraw/reactUtils";
+import {
+  Collaborator,
+  ExcalidrawImperativeAPI,
+  Gesture,
+  SocketId,
+  UserIdleState,
+} from "../../packages/excalidraw/types";
+import { Mutable, ValueOf } from "../../packages/excalidraw/utility-types";
 import {
   assertNever,
   preventUnload,
   resolvablePromise,
   throttleRAF,
 } from "../../packages/excalidraw/utils";
+import { appJotaiStore } from "../app-jotai";
 import {
   CURSOR_SYNC_TIMEOUT,
   FILE_UPLOAD_MAX_BYTES,
   FIREBASE_STORAGE_PREFIXES,
   INITIAL_SCENE_UPDATE_TIMEOUT,
   LOAD_IMAGES_TIMEOUT,
-  WS_SUBTYPES,
   SYNC_FULL_SCENE_INTERVAL_MS,
   WS_EVENTS,
+  WS_SUBTYPES,
 } from "../app_constants";
 import {
+  SocketUpdateDataSource,
+  SyncableExcalidrawElement,
   generateCollaborationLinkData,
   getCollaborationLink,
   getSyncableElements,
-  SocketUpdateDataSource,
-  SyncableExcalidrawElement,
 } from "../data";
+import {
+  FileManager,
+  encodeFilesForUpload,
+  updateStaleImageStatuses,
+} from "../data/FileManager";
+import { LocalData } from "../data/LocalData";
 import {
   isSavedToFirebase,
   loadFilesFromFirebase,
@@ -47,40 +74,12 @@ import {
   saveFilesToFirebase,
   saveToFirebase,
 } from "../data/firebase";
-import {
-  importUsernameFromLocalStorage,
-  saveUsernameToLocalStorage,
-} from "../data/localStorage";
+import { resetBrowserStateVersions } from "../data/tabSync";
 import Portal from "./Portal";
-import { t } from "../../packages/excalidraw/i18n";
-import { UserIdleState } from "../../packages/excalidraw/types";
-import {
-  IDLE_THRESHOLD,
-  ACTIVE_THRESHOLD,
-} from "../../packages/excalidraw/constants";
-import {
-  encodeFilesForUpload,
-  FileManager,
-  updateStaleImageStatuses,
-} from "../data/FileManager";
-import { AbortError } from "../../packages/excalidraw/errors";
-import {
-  isImageElement,
-  isInitializedImageElement,
-} from "../../packages/excalidraw/element/typeChecks";
-import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
 import {
   ReconciledElements,
   reconcileElements as _reconcileElements,
 } from "./reconciliation";
-import { decryptData } from "../../packages/excalidraw/data/encryption";
-import { resetBrowserStateVersions } from "../data/tabSync";
-import { LocalData } from "../data/LocalData";
-import { atom } from "jotai";
-import { appJotaiStore } from "../app-jotai";
-import { Mutable, ValueOf } from "../../packages/excalidraw/utility-types";
-import { getVisibleSceneBounds } from "../../packages/excalidraw/element/bounds";
-import { withBatchedUpdates } from "../../packages/excalidraw/reactUtils";
 
 export const collabAPIAtom = atom<CollabAPI | null>(null);
 export const isCollaboratingAtom = atom(false);
@@ -111,6 +110,7 @@ export interface CollabAPI {
 }
 
 interface CollabProps {
+  username: string;
   excalidrawAPI: ExcalidrawImperativeAPI;
 }
 
@@ -129,7 +129,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     super(props);
     this.state = {
       errorMessage: null,
-      username: importUsernameFromLocalStorage() || "",
+      username: props.username,
       activeRoomLink: null,
     };
     this.portal = new Portal(this);
@@ -408,13 +408,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   startCollaboration = async (
     existingRoomLinkData: null | { roomId: string; roomKey: string },
   ): Promise<ImportedDataState | null> => {
-    if (!this.state.username) {
-      import("@excalidraw/random-username").then(({ getRandomUsername }) => {
-        const username = getRandomUsername();
-        this.setUsername(username);
-      });
-    }
-
     if (this.portal.socket) {
       return null;
     }
@@ -911,7 +904,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
   setUsername = (username: string) => {
     this.setState({ username });
-    saveUsernameToLocalStorage(username);
   };
 
   getUsername = () => this.state.username;

@@ -1,17 +1,17 @@
 import { defaultLang } from "../../packages/excalidraw/i18n";
 import { UI } from "../../packages/excalidraw/tests/helpers/ui";
 import {
-  screen,
   fireEvent,
-  waitFor,
   render,
+  screen,
+  waitFor,
 } from "../../packages/excalidraw/tests/test-utils";
 
 import ExcalidrawApp from "../App";
 
 describe("Test LanguageList", () => {
   it("rerenders UI on language change", async () => {
-    await render(<ExcalidrawApp />);
+    await render(<ExcalidrawApp username="test" />);
 
     // select rectangle tool to show properties menu
     UI.clickTool("rectangle");

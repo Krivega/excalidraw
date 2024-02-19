@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import packageJson from './package.json';
 import config from "./vite.config.core.mjs";
 
 // https://vitejs.dev/config/
@@ -27,6 +28,9 @@ export default defineConfig({
           "react-dom": "ReactDOM",
         },
       },
+      // make sure to externalize deps that shouldn't be bundled
+      // into your library
+      external: Object.keys(packageJson.peerDependencies),
     },
   },
   plugins: [

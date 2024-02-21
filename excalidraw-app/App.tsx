@@ -264,6 +264,17 @@ export const appLangCodeAtom = atom(
   Array.isArray(detectedLangCode) ? detectedLangCode[0] : detectedLangCode,
 );
 
+type TProps = {
+  username: string;
+  id?: string;
+  jsonId?: string;
+  jsonPrivateKey?: string;
+  externalUrl?: string;
+  roomId?: string;
+  roomKey?: string;
+  isCollaborating?: boolean;
+};
+
 const ExcalidrawWrapper = ({
   username,
   id,
@@ -273,16 +284,7 @@ const ExcalidrawWrapper = ({
   roomId,
   roomKey,
   isCollaborating: isCollaborationLink,
-}: {
-  username: string;
-  id?: string;
-  jsonId?: string;
-  jsonPrivateKey?: string;
-  externalUrl?: string;
-  roomId?: string;
-  roomKey?: string;
-  isCollaborating?: boolean;
-}) => {
+}: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [langCode, setLangCode] = useAtom(appLangCodeAtom);
   const isCollabDisabled = isRunningInIframe();
@@ -878,11 +880,29 @@ const ExcalidrawWrapper = ({
   );
 };
 
-const ExcalidrawApp = ({ username }: { username: string }) => {
+const ExcalidrawApp = ({
+  username,
+  id,
+  jsonId,
+  jsonPrivateKey,
+  externalUrl,
+  roomId,
+  roomKey,
+  isCollaborating,
+}: TProps) => {
   return (
     <TopErrorBoundary>
       <Provider unstable_createStore={() => appJotaiStore}>
-        <ExcalidrawWrapper username={username} />
+        <ExcalidrawWrapper
+          username={username}
+          id={id}
+          jsonId={jsonId}
+          jsonPrivateKey={jsonPrivateKey}
+          externalUrl={externalUrl}
+          roomId={roomId}
+          roomKey={roomKey}
+          isCollaborating={isCollaborating}
+        />
       </Provider>
     </TopErrorBoundary>
   );

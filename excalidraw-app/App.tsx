@@ -294,6 +294,7 @@ const ExcalidrawWrapper = ({
   externalUrl,
   roomId,
   roomKey,
+  wsServerUrl,
   isCollaborating: isCollaborationLink,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -418,6 +419,7 @@ const ExcalidrawWrapper = ({
       externalUrl,
       roomId,
       roomKey,
+      wsServerUrl,
     }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);

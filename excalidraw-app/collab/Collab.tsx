@@ -406,17 +406,22 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private fallbackInitializationHandler: null | (() => any) = null;
 
   startCollaboration = async (
-    existingRoomLinkData: null | { roomId: string; roomKey: string },
+    existingRoomLinkData: null | {
+      roomId: string;
+      roomKey: string;
+      wsServerUrl: string;
+    },
   ): Promise<ImportedDataState | null> => {
     if (this.portal.socket) {
       return null;
     }
 
-    let roomId;
-    let roomKey;
+    let roomId: string | undefined;
+    let roomKey: string | undefined;
+    let wsServerUrl: string | undefined;
 
     if (existingRoomLinkData) {
-      ({ roomId, roomKey } = existingRoomLinkData);
+      ({ roomId, roomKey, wsServerUrl } = existingRoomLinkData);
     } else {
       ({ roomId, roomKey } = await generateCollaborationLinkData());
       window.history.pushState(
@@ -446,8 +451,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.fallbackInitializationHandler = fallbackInitializationHandler;
 
     try {
+      if (!wsServerUrl) {
+        throw new Error("No server url provided");
+      }
+
       this.portal.socket = this.portal.open(
-        socketIOClient(import.meta.env.VITE_APP_WS_SERVER_URL, {
+        socketIOClient(wsServerUrl, {
           transports: ["websocket", "polling"],
         }),
         roomId,

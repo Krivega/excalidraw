@@ -137,6 +137,7 @@ const initializeScene = async (opts: {
   externalUrl?: string;
   roomId?: string;
   roomKey?: string;
+  wsServerUrl?: string;
 }): Promise<
   { scene: ExcalidrawInitialDataState | null } & (
     | { isExternalScene: true; id: string; key: string }
@@ -148,7 +149,15 @@ const initializeScene = async (opts: {
   let scene: RestoredDataState & {
     scrollToContent?: boolean;
   } = await loadScene(null, null, localDataState);
-  let { id, jsonId, jsonPrivateKey, externalUrl, roomId, roomKey } = opts;
+  let {
+    id,
+    jsonId,
+    jsonPrivateKey,
+    externalUrl,
+    roomId,
+    roomKey,
+    wsServerUrl,
+  } = opts;
 
   const isExternalScene = !!(
     id ||
@@ -210,12 +219,13 @@ const initializeScene = async (opts: {
     }
   }
 
-  if (roomId && roomKey && opts.collabAPI) {
+  if (roomId && roomKey && wsServerUrl && opts.collabAPI) {
     const { excalidrawAPI } = opts;
 
     const scene = await opts.collabAPI.startCollaboration({
       roomId,
       roomKey,
+      wsServerUrl,
     });
 
     return {
@@ -272,6 +282,7 @@ type TProps = {
   externalUrl?: string;
   roomId?: string;
   roomKey?: string;
+  wsServerUrl?: string;
   isCollaborating?: boolean;
 };
 
@@ -888,6 +899,7 @@ const ExcalidrawApp = ({
   externalUrl,
   roomId,
   roomKey,
+  wsServerUrl,
   isCollaborating,
 }: TProps) => {
   return (
@@ -901,6 +913,7 @@ const ExcalidrawApp = ({
           externalUrl={externalUrl}
           roomId={roomId}
           roomKey={roomKey}
+          wsServerUrl={wsServerUrl}
           isCollaborating={isCollaborating}
         />
       </Provider>

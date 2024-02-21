@@ -519,6 +519,7 @@ const ExcalidrawWrapper = ({
     externalUrl,
     roomId,
     roomKey,
+    wsServerUrl,
   ]);
 
   useEffect(() => {

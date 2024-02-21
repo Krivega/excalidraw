@@ -498,6 +498,12 @@ const ExcalidrawWrapper = ({
     setLangCode,
     username,
     isCollaborating,
+    id,
+    jsonId,
+    jsonPrivateKey,
+    externalUrl,
+    roomId,
+    roomKey,
   ]);
 
   useEffect(() => {

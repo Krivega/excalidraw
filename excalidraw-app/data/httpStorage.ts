@@ -26,8 +26,6 @@ import Portal from "../collab/Portal";
 import { reconcileElements } from "../collab/reconciliation";
 import { StoredScene } from "./StorageBackend";
 
-const HTTP_STORAGE_BACKEND_URL = import.meta.env
-  .VITE_APP_HTTP_STORAGE_BACKEND_URL;
 const SCENE_VERSION_LENGTH_BYTES = 4;
 
 // There is a lot of intentional duplication with the firebase file
@@ -53,6 +51,7 @@ export const saveToHttpStorage = async (
   portal: Portal,
   elements: readonly SyncableExcalidrawElement[],
   appState: AppState,
+  HTTP_STORAGE_BACKEND_URL: string,
 ) => {
   const { roomId, roomKey, socket } = portal;
   if (
@@ -80,6 +79,7 @@ export const saveToHttpStorage = async (
       roomId,
       [...elements],
       sceneVersion,
+      HTTP_STORAGE_BACKEND_URL,
     );
     if (result) {
       return {
@@ -106,6 +106,7 @@ export const saveToHttpStorage = async (
     roomId,
     reconciledElements,
     sceneVersion,
+    HTTP_STORAGE_BACKEND_URL,
   );
 
   if (result) {
@@ -121,6 +122,7 @@ export const loadFromHttpStorage = async (
   roomId: string,
   roomKey: string,
   socket: ISocketIO | null,
+  HTTP_STORAGE_BACKEND_URL: string,
 ): Promise<readonly ExcalidrawElement[] | null> => {
   const getResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
@@ -162,9 +164,11 @@ const getElementsFromBuffer = async (
 export const saveFilesToHttpStorage = async ({
   prefix,
   files,
+  HTTP_STORAGE_BACKEND_URL,
 }: {
   prefix: string;
   files: { id: FileId; buffer: Uint8Array }[];
+  HTTP_STORAGE_BACKEND_URL: string;
 }) => {
   const erroredFiles = new Map<FileId, true>();
   const savedFiles = new Map<FileId, true>();
@@ -192,6 +196,7 @@ export const loadFilesFromHttpStorage = async (
   prefix: string,
   decryptionKey: string,
   filesIds: readonly FileId[],
+  HTTP_STORAGE_BACKEND_URL: string,
 ) => {
   const loadedFiles: BinaryFileData[] = [];
   const erroredFiles = new Map<FileId, true>();
@@ -238,6 +243,7 @@ const saveElementsToBackend = async (
   roomId: string,
   elements: SyncableExcalidrawElement[],
   sceneVersion: number,
+  HTTP_STORAGE_BACKEND_URL: string,
 ) => {
   const { ciphertext, iv } = await encryptElements(roomKey, elements);
 

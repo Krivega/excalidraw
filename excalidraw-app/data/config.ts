@@ -36,12 +36,12 @@ const storageBackends = new Map<string, StorageBackend>()
 
 export let storageBackend: StorageBackend | null = null;
 
-export async function getStorageBackend() {
+export async function getStorageBackend(
+  storageBackendName: string = "firebase",
+) {
   if (storageBackend) {
     return storageBackend;
   }
-
-  const storageBackendName = import.meta.env.VITE_APP_STORAGE_BACKEND || "";
 
   if (storageBackends.has(storageBackendName)) {
     storageBackend = storageBackends.get(storageBackendName) as StorageBackend;

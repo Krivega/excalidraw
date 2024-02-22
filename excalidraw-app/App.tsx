@@ -297,6 +297,7 @@ type TProps = {
   isCollaborating?: boolean;
   BACKEND_V2_POST: string;
   BACKEND_V2_GET: string;
+  HTTP_STORAGE_BACKEND_URL: string;
 };
 
 const ExcalidrawWrapper = ({
@@ -311,6 +312,7 @@ const ExcalidrawWrapper = ({
   wsServerPath,
   BACKEND_V2_POST,
   BACKEND_V2_GET,
+  HTTP_STORAGE_BACKEND_URL,
   isCollaborating: isCollaborationLink,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -397,6 +399,7 @@ const ExcalidrawWrapper = ({
               `${FIREBASE_STORAGE_PREFIXES.shareLinkFiles}/${data.id}`,
               data.key,
               fileIds,
+              HTTP_STORAGE_BACKEND_URL,
             )
             .then(({ loadedFiles, erroredFiles }) => {
               excalidrawAPI.addFiles(loadedFiles);
@@ -542,6 +545,7 @@ const ExcalidrawWrapper = ({
     wsServerUrl,
     wsServerPath,
     BACKEND_V2_GET,
+    HTTP_STORAGE_BACKEND_URL,
   ]);
 
   useEffect(() => {
@@ -887,7 +891,11 @@ const ExcalidrawWrapper = ({
           />
         )}
         {excalidrawAPI && !isCollabDisabled && (
-          <Collab username={username} excalidrawAPI={excalidrawAPI} />
+          <Collab
+            username={username}
+            excalidrawAPI={excalidrawAPI}
+            HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
+          />
         )}
 
         <ShareDialog
@@ -930,6 +938,7 @@ const ExcalidrawApp = ({
   isCollaborating,
   BACKEND_V2_POST,
   BACKEND_V2_GET,
+  HTTP_STORAGE_BACKEND_URL,
 }: TProps) => {
   return (
     <TopErrorBoundary>
@@ -947,6 +956,7 @@ const ExcalidrawApp = ({
           isCollaborating={isCollaborating}
           BACKEND_V2_POST={BACKEND_V2_POST}
           BACKEND_V2_GET={BACKEND_V2_GET}
+          HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
         />
       </Provider>
     </TopErrorBoundary>

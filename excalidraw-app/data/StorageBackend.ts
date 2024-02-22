@@ -13,11 +13,13 @@ export interface StorageBackend {
     portal: Portal,
     elements: readonly SyncableExcalidrawElement[],
     appState: AppState,
+    HTTP_STORAGE_BACKEND_URL: string,
   ) => Promise<false | { reconciledElements: any }>;
   loadFromStorageBackend: (
     roomId: string,
     roomKey: string,
     socket: ISocketIO | null,
+    HTTP_STORAGE_BACKEND_URL: string,
   ) => Promise<readonly ExcalidrawElement[] | null>;
   saveFilesToStorageBackend: ({
     prefix,
@@ -28,6 +30,7 @@ export interface StorageBackend {
       id: FileId;
       buffer: Uint8Array;
     }[];
+    HTTP_STORAGE_BACKEND_URL: string;
   }) => Promise<{
     savedFiles: Map<FileId, true>;
     erroredFiles: Map<FileId, true>;
@@ -36,6 +39,7 @@ export interface StorageBackend {
     prefix: string,
     decryptionKey: string,
     filesIds: readonly FileId[],
+    HTTP_STORAGE_BACKEND_URL: string,
   ) => Promise<{
     loadedFiles: BinaryFileData[];
     erroredFiles: Map<FileId, true>;

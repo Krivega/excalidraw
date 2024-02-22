@@ -12,8 +12,15 @@ registerSW();
 
 const username = getRandomUsername();
 
+const BACKEND_V2_GET = import.meta.env.VITE_APP_BACKEND_V2_GET_URL;
+const BACKEND_V2_POST = import.meta.env.VITE_APP_BACKEND_V2_POST_URL;
+
 root.render(
   <StrictMode>
-    <App username={username} />
+    <App
+      username={username}
+      BACKEND_V2_POST={BACKEND_V2_POST}
+      BACKEND_V2_GET={BACKEND_V2_GET}
+    />
   </StrictMode>,
 );

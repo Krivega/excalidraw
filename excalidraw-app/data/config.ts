@@ -36,9 +36,7 @@ const storageBackends = new Map<string, StorageBackend>()
 
 export let storageBackend: StorageBackend | null = null;
 
-export async function getStorageBackend(
-  storageBackendName: string = "firebase",
-) {
+export async function getStorageBackend(storageBackendName: string = "http") {
   if (storageBackend) {
     return storageBackend;
   }

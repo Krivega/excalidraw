@@ -11,7 +11,13 @@ import ExcalidrawApp from "../App";
 
 describe("Test LanguageList", () => {
   it("rerenders UI on language change", async () => {
-    await render(<ExcalidrawApp username="test" />);
+    await render(
+      <ExcalidrawApp
+        username="test"
+        BACKEND_V2_POST="https://json.excalidraw.com/api/v2/post/"
+        BACKEND_V2_GET="https://json.excalidraw.com/api/v2/"
+      />,
+    );
 
     // select rectangle tool to show properties menu
     UI.clickTool("rectangle");

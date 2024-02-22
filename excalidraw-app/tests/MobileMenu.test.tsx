@@ -16,7 +16,13 @@ describe("Test MobileMenu", () => {
   });
 
   beforeEach(async () => {
-    await render(<ExcalidrawApp username="test" />);
+    await render(
+      <ExcalidrawApp
+        username="test"
+        BACKEND_V2_POST="https://json.excalidraw.com/api/v2/post/"
+        BACKEND_V2_GET="https://json.excalidraw.com/api/v2/"
+      />,
+    );
     // @ts-ignore
     h.app.refreshViewportBreakpoints();
     // @ts-ignore

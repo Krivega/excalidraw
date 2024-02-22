@@ -1,18 +1,18 @@
+import { vi } from "vitest";
+import { getDefaultAppState } from "../../appState";
+import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "../../constants";
 import * as restore from "../../data/restore";
+import { ImportedDataState } from "../../data/types";
+import { newElementWith } from "../../element/mutateElement";
+import * as sizeHelpers from "../../element/sizeHelpers";
 import {
   ExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
 } from "../../element/types";
-import * as sizeHelpers from "../../element/sizeHelpers";
-import { API } from "../helpers/api";
-import { getDefaultAppState } from "../../appState";
-import { ImportedDataState } from "../../data/types";
 import { NormalizedZoomValue } from "../../types";
-import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "../../constants";
-import { newElementWith } from "../../element/mutateElement";
-import { vi } from "vitest";
+import { API } from "../helpers/api";
 
 describe("restoreElements", () => {
   const mockSizeHelper = vi.spyOn(sizeHelpers, "isInvisiblySmallElement");
@@ -58,7 +58,7 @@ describe("restoreElements", () => {
     const textElement = API.createElement({
       type: "text",
       fontSize: 14,
-      fontFamily: FONT_FAMILY.Virgil,
+      fontFamily: FONT_FAMILY["Virgil, HanziPen SC, KaiTi"],
       text: "text",
       textAlign: "center",
       verticalAlign: "middle",

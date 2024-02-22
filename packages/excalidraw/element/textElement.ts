@@ -1,4 +1,27 @@
-import { getFontString, arrayToMap, isTestEnv, normalizeEOL } from "../utils";
+import { getElementAbsoluteCoords, isTextElement } from ".";
+import {
+  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
+  ARROW_LABEL_WIDTH_FRACTION,
+  BOUND_TEXT_PADDING,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_SIZE,
+  FONT_FAMILY,
+  TEXT_ALIGN,
+  VERTICAL_ALIGN,
+  isSafari,
+} from "../constants";
+import { getSelectedElements } from "../scene";
+import { AppState } from "../types";
+import { arrayToMap, getFontString, isTestEnv, normalizeEOL } from "../utils";
+import { isHittingElementNotConsideringBoundingBox } from "./collision";
+import { LinearElementEditor } from "./linearElementEditor";
+import { mutateElement } from "./mutateElement";
+import { MaybeTransformHandleType } from "./transformHandles";
+import {
+  isArrowElement,
+  isBoundToContainer,
+  isTextBindableContainer,
+} from "./typeChecks";
 import {
   ElementsMap,
   ExcalidrawElement,
@@ -10,27 +33,6 @@ import {
   FontString,
   NonDeletedExcalidrawElement,
 } from "./types";
-import { mutateElement } from "./mutateElement";
-import {
-  ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
-  ARROW_LABEL_WIDTH_FRACTION,
-  BOUND_TEXT_PADDING,
-  DEFAULT_FONT_FAMILY,
-  DEFAULT_FONT_SIZE,
-  FONT_FAMILY,
-  isSafari,
-  TEXT_ALIGN,
-  VERTICAL_ALIGN,
-} from "../constants";
-import { MaybeTransformHandleType } from "./transformHandles";
-import { isTextElement } from ".";
-import { isBoundToContainer, isArrowElement } from "./typeChecks";
-import { LinearElementEditor } from "./linearElementEditor";
-import { AppState } from "../types";
-import { isTextBindableContainer } from "./typeChecks";
-import { getElementAbsoluteCoords } from ".";
-import { getSelectedElements } from "../scene";
-import { isHittingElementNotConsideringBoundingBox } from "./collision";
 
 import { ExtractSetType } from "../utility-types";
 import {
@@ -963,7 +965,8 @@ export const isMeasureTextSupported = () => {
 const DEFAULT_LINE_HEIGHT = {
   // ~1.25 is the average for Virgil in WebKit and Blink.
   // Gecko (FF) uses ~1.28.
-  [FONT_FAMILY.Virgil]: 1.25 as ExcalidrawTextElement["lineHeight"],
+  [FONT_FAMILY["Virgil, HanziPen SC, KaiTi"]]:
+    1.25 as ExcalidrawTextElement["lineHeight"],
   // ~1.15 is the average for Virgil in WebKit and Blink.
   // Gecko if all over the place.
   [FONT_FAMILY.Helvetica]: 1.15 as ExcalidrawTextElement["lineHeight"],

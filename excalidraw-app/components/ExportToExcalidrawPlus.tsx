@@ -1,30 +1,31 @@
+import { nanoid } from "nanoid";
 import React from "react";
+import { trackEvent } from "../../packages/excalidraw/analytics";
 import { Card } from "../../packages/excalidraw/components/Card";
+import { ExcalidrawLogo } from "../../packages/excalidraw/components/ExcalidrawLogo";
 import { ToolButton } from "../../packages/excalidraw/components/ToolButton";
+import { MIME_TYPES } from "../../packages/excalidraw/constants";
+import {
+  encryptData,
+  generateEncryptionKey,
+} from "../../packages/excalidraw/data/encryption";
 import { serializeAsJSON } from "../../packages/excalidraw/data/json";
-import { loadFirebaseStorage, saveFilesToFirebase } from "../data/firebase";
+import { isInitializedImageElement } from "../../packages/excalidraw/element/typeChecks";
 import {
   FileId,
   NonDeletedExcalidrawElement,
 } from "../../packages/excalidraw/element/types";
+import { useI18n } from "../../packages/excalidraw/i18n";
 import {
   AppState,
   BinaryFileData,
   BinaryFiles,
 } from "../../packages/excalidraw/types";
-import { nanoid } from "nanoid";
-import { useI18n } from "../../packages/excalidraw/i18n";
-import {
-  encryptData,
-  generateEncryptionKey,
-} from "../../packages/excalidraw/data/encryption";
-import { isInitializedImageElement } from "../../packages/excalidraw/element/typeChecks";
+import { getFrame } from "../../packages/excalidraw/utils";
 import { FILE_UPLOAD_MAX_BYTES } from "../app_constants";
 import { encodeFilesForUpload } from "../data/FileManager";
-import { MIME_TYPES } from "../../packages/excalidraw/constants";
-import { trackEvent } from "../../packages/excalidraw/analytics";
-import { getFrame } from "../../packages/excalidraw/utils";
-import { ExcalidrawLogo } from "../../packages/excalidraw/components/ExcalidrawLogo";
+import { getStorageBackend } from "../data/config";
+import { loadFirebaseStorage } from "../data/firebase";
 
 export const exportToExcalidrawPlus = async (
   elements: readonly NonDeletedExcalidrawElement[],
@@ -49,6 +50,7 @@ export const exportToExcalidrawPlus = async (
     },
   );
 
+  // FIXME StorageBackend not covered this case, we should remove the use-case in the web page
   await firebase
     .storage()
     .ref(`/migrations/scenes/${id}`)
@@ -73,7 +75,8 @@ export const exportToExcalidrawPlus = async (
       maxBytes: FILE_UPLOAD_MAX_BYTES,
     });
 
-    await saveFilesToFirebase({
+    const storageBackend = await getStorageBackend();
+    await storageBackend.saveFilesToStorageBackend({
       prefix: `/migrations/files/scenes/${id}`,
       files: filesToUpload,
     });

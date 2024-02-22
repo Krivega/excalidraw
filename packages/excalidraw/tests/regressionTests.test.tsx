@@ -1,7 +1,9 @@
 import ReactDOM from "react-dom";
+import { vi } from "vitest";
+import { FONT_FAMILY } from "../constants";
 import { ExcalidrawElement } from "../element/types";
-import { CODES, KEYS } from "../keys";
 import { Excalidraw } from "../index";
+import { CODES, KEYS } from "../keys";
 import { reseed } from "../random";
 import * as StaticScene from "../renderer/staticScene";
 import { setDateTimeForTests } from "../utils";
@@ -14,8 +16,6 @@ import {
   screen,
   togglePopover,
 } from "./test-utils";
-import { FONT_FAMILY } from "../constants";
-import { vi } from "vitest";
 
 const { h } = window;
 
@@ -644,7 +644,9 @@ describe("regression tests", () => {
 
   it("updates fontSize & fontFamily appState", () => {
     UI.clickTool("text");
-    expect(h.state.currentItemFontFamily).toEqual(FONT_FAMILY.Virgil);
+    expect(h.state.currentItemFontFamily).toEqual(
+      FONT_FAMILY["Virgil, HanziPen SC, KaiTi"],
+    );
     fireEvent.click(screen.getByTitle(/code/i));
     expect(h.state.currentItemFontFamily).toEqual(FONT_FAMILY.Cascadia);
   });

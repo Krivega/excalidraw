@@ -1,27 +1,27 @@
+import type { Socket } from "socket.io-client";
+import { SyncableExcalidrawElement, getSyncableElements } from ".";
+import { MIME_TYPES } from "../../packages/excalidraw/constants";
+import { decompressData } from "../../packages/excalidraw/data/encode";
+import {
+  decryptData,
+  encryptData,
+} from "../../packages/excalidraw/data/encryption";
+import { restoreElements } from "../../packages/excalidraw/data/restore";
+import { getSceneVersion } from "../../packages/excalidraw/element";
 import {
   ExcalidrawElement,
   FileId,
 } from "../../packages/excalidraw/element/types";
-import { getSceneVersion } from "../../packages/excalidraw/element";
-import Portal from "../collab/Portal";
-import { restoreElements } from "../../packages/excalidraw/data/restore";
 import {
   AppState,
   BinaryFileData,
   BinaryFileMetadata,
   DataURL,
 } from "../../packages/excalidraw/types";
-import { FILE_CACHE_MAX_AGE_SEC } from "../app_constants";
-import { decompressData } from "../../packages/excalidraw/data/encode";
-import {
-  encryptData,
-  decryptData,
-} from "../../packages/excalidraw/data/encryption";
-import { MIME_TYPES } from "../../packages/excalidraw/constants";
-import { reconcileElements } from "../collab/reconciliation";
-import { getSyncableElements, SyncableExcalidrawElement } from ".";
 import { ResolutionType } from "../../packages/excalidraw/utility-types";
-import type { Socket } from "socket.io-client";
+import { FILE_CACHE_MAX_AGE_SEC } from "../app_constants";
+import Portal from "../collab/Portal";
+import { reconcileElements } from "../collab/reconciliation";
 
 // private
 // -----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ interface FirebaseStoredScene {
   ciphertext: firebase.default.firestore.Blob;
 }
 
-const encryptElements = async (
+export const encryptElements = async (
   key: string,
   elements: readonly ExcalidrawElement[],
 ): Promise<{ ciphertext: ArrayBuffer; iv: Uint8Array }> => {
@@ -124,7 +124,7 @@ const encryptElements = async (
   return { ciphertext: encryptedBuffer, iv };
 };
 
-const decryptElements = async (
+export const decryptElements = async (
   data: FirebaseStoredScene,
   roomKey: string,
 ): Promise<readonly ExcalidrawElement[]> => {

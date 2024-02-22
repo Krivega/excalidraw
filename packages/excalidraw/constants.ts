@@ -1,7 +1,7 @@
-import cssVariables from "./css/variables.module.scss";
-import { AppProps } from "./types";
-import { ExcalidrawElement, FontFamilyValues } from "./element/types";
 import { COLOR_PALETTE } from "./colors";
+import cssVariables from "./css/variables.module.scss";
+import { ExcalidrawElement, FontFamilyValues } from "./element/types";
+import { AppProps } from "./types";
 export const isDarwin = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 export const isWindows = /^Win/.test(navigator.platform);
 export const isAndroid = /\b(android)\b/i.test(navigator.userAgent);
@@ -107,7 +107,7 @@ export const CLASSES = {
 
 // 1-based in case we ever do `if(element.fontFamily)`
 export const FONT_FAMILY = {
-  Virgil: 1,
+  "Virgil, HanziPen SC, KaiTi": 1,
   Helvetica: 2,
   Cascadia: 3,
   Assistant: 4,
@@ -138,7 +138,8 @@ export const WINDOWS_EMOJI_FALLBACK_FONT = "Segoe UI Emoji";
 
 export const MIN_FONT_SIZE = 1;
 export const DEFAULT_FONT_SIZE = 20;
-export const DEFAULT_FONT_FAMILY: FontFamilyValues = FONT_FAMILY.Virgil;
+export const DEFAULT_FONT_FAMILY: FontFamilyValues =
+  FONT_FAMILY["Virgil, HanziPen SC, KaiTi"];
 export const DEFAULT_TEXT_ALIGN = "left";
 export const DEFAULT_VERTICAL_ALIGN = "top";
 export const DEFAULT_VERSION = "{version}";

@@ -1,25 +1,23 @@
-import {
-  isSyncableElement,
-  SocketUpdateData,
-  SocketUpdateDataSource,
-} from "../data";
-
-import { TCollabClass } from "./Collab";
-
+import throttle from "lodash.throttle";
+import type { Socket } from "socket.io-client";
+import { trackEvent } from "../../packages/excalidraw/analytics";
+import { PRECEDING_ELEMENT_KEY } from "../../packages/excalidraw/constants";
+import { encryptData } from "../../packages/excalidraw/data/encryption";
+import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
 import { ExcalidrawElement } from "../../packages/excalidraw/element/types";
-import { WS_EVENTS, FILE_UPLOAD_TIMEOUT, WS_SUBTYPES } from "../app_constants";
 import {
   OnUserFollowedPayload,
   SocketId,
   UserIdleState,
 } from "../../packages/excalidraw/types";
-import { trackEvent } from "../../packages/excalidraw/analytics";
-import throttle from "lodash.throttle";
-import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
+import { FILE_UPLOAD_TIMEOUT, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
+import {
+  isSyncableElement,
+  SocketUpdateData,
+  SocketUpdateDataSource,
+} from "../data";
+import { TCollabClass } from "./Collab";
 import { BroadcastedExcalidrawElement } from "./reconciliation";
-import { encryptData } from "../../packages/excalidraw/data/encryption";
-import { PRECEDING_ELEMENT_KEY } from "../../packages/excalidraw/constants";
-import type { Socket } from "socket.io-client";
 
 class Portal {
   collab: TCollabClass;
@@ -57,6 +55,10 @@ class Portal {
     });
 
     return socket;
+  }
+
+  get socketId() {
+    return this.socket?.io?.engine?.id as SocketId | undefined;
   }
 
   close() {
@@ -183,11 +185,12 @@ class Portal {
   };
 
   broadcastIdleChange = (userState: UserIdleState) => {
-    if (this.socket?.id) {
+    const socketId = this.socketId;
+    if (socketId) {
       const data: SocketUpdateDataSource["IDLE_STATUS"] = {
         type: WS_SUBTYPES.IDLE_STATUS,
         payload: {
-          socketId: this.socket.id as SocketId,
+          socketId,
           userState,
           username: this.collab.state.username,
         },
@@ -203,11 +206,12 @@ class Portal {
     pointer: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["pointer"];
     button: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["button"];
   }) => {
-    if (this.socket?.id) {
+    const socketId = this.socketId;
+    if (socketId) {
       const data: SocketUpdateDataSource["MOUSE_LOCATION"] = {
         type: WS_SUBTYPES.MOUSE_LOCATION,
         payload: {
-          socketId: this.socket.id as SocketId,
+          socketId,
           pointer: payload.pointer,
           button: payload.button || "up",
           selectedElementIds:
@@ -229,11 +233,12 @@ class Portal {
     },
     roomId: string,
   ) => {
-    if (this.socket?.id) {
+    const socketId = this.socketId;
+    if (socketId) {
       const data: SocketUpdateDataSource["USER_VISIBLE_SCENE_BOUNDS"] = {
         type: WS_SUBTYPES.USER_VISIBLE_SCENE_BOUNDS,
         payload: {
-          socketId: this.socket.id as SocketId,
+          socketId,
           username: this.collab.state.username,
           sceneBounds: payload.sceneBounds,
         },

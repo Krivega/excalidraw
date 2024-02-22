@@ -410,6 +410,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       roomId: string;
       roomKey: string;
       wsServerUrl: string;
+      wsServerPath?: string;
     },
   ): Promise<ImportedDataState | null> => {
     if (this.portal.socket) {
@@ -419,9 +420,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     let roomId: string | undefined;
     let roomKey: string | undefined;
     let wsServerUrl: string | undefined;
+    let wsServerPath: string | undefined;
 
     if (existingRoomLinkData) {
-      ({ roomId, roomKey, wsServerUrl } = existingRoomLinkData);
+      ({ roomId, roomKey, wsServerUrl, wsServerPath } = existingRoomLinkData);
     } else {
       ({ roomId, roomKey } = await generateCollaborationLinkData());
       window.history.pushState(
@@ -458,6 +460,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       this.portal.socket = this.portal.open(
         socketIOClient(wsServerUrl, {
           transports: ["websocket", "polling"],
+          path: wsServerPath,
         }),
         roomId,
         roomKey,

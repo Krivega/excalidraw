@@ -138,6 +138,7 @@ const initializeScene = async (opts: {
   roomId?: string;
   roomKey?: string;
   wsServerUrl?: string;
+  wsServerPath?: string;
 }): Promise<
   { scene: ExcalidrawInitialDataState | null } & (
     | { isExternalScene: true; id: string; key: string }
@@ -157,6 +158,7 @@ const initializeScene = async (opts: {
     roomId,
     roomKey,
     wsServerUrl,
+    wsServerPath,
   } = opts;
 
   const isExternalScene = !!(
@@ -226,6 +228,7 @@ const initializeScene = async (opts: {
       roomId,
       roomKey,
       wsServerUrl,
+      wsServerPath,
     });
 
     return {
@@ -283,6 +286,7 @@ type TProps = {
   roomId?: string;
   roomKey?: string;
   wsServerUrl?: string;
+  wsServerPath?: string;
   isCollaborating?: boolean;
 };
 
@@ -295,6 +299,7 @@ const ExcalidrawWrapper = ({
   roomId,
   roomKey,
   wsServerUrl,
+  wsServerPath,
   isCollaborating: isCollaborationLink,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -420,6 +425,7 @@ const ExcalidrawWrapper = ({
       roomId,
       roomKey,
       wsServerUrl,
+      wsServerPath,
     }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);
@@ -520,6 +526,7 @@ const ExcalidrawWrapper = ({
     roomId,
     roomKey,
     wsServerUrl,
+    wsServerPath,
   ]);
 
   useEffect(() => {
@@ -903,6 +910,7 @@ const ExcalidrawApp = ({
   roomId,
   roomKey,
   wsServerUrl,
+  wsServerPath,
   isCollaborating,
 }: TProps) => {
   return (
@@ -917,6 +925,7 @@ const ExcalidrawApp = ({
           roomId={roomId}
           roomKey={roomKey}
           wsServerUrl={wsServerUrl}
+          wsServerPath={wsServerPath}
           isCollaborating={isCollaborating}
         />
       </Provider>

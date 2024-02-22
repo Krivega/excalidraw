@@ -23,9 +23,6 @@
 # export VITE_APP_CDN_MATOMO_TRACKER_URL=//cdn.matomo.cloud/excalidraw.matomo.cloud/matomo.js
 # export VITE_APP_MATOMO_SITE_ID=1
 # export VITE_APP_PLUS_APP=https://app.excalidraw.com
-# alswl's fork version env
-# export VITE_APP_HTTP_STORAGE_BACKEND_URL=http://127.0.0.1:8081/api/v2
-# export VITE_APP_STORAGE_BACKEND=http
 #
 # 3. launch nginx, python launcher.py /usr/share/nginx/html
 

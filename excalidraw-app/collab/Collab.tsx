@@ -105,6 +105,7 @@ export interface CollabAPI {
 
 interface CollabProps {
   username: string;
+  HTTP_STORAGE_BACKEND_URL: string;
   excalidrawAPI: ExcalidrawImperativeAPI;
 }
 
@@ -114,6 +115,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   excalidrawAPI: CollabProps["excalidrawAPI"];
   activeIntervalId: number | null;
   idleTimeoutId: number | null;
+  HTTP_STORAGE_BACKEND_URL: string;
 
   private socketInitializationTimer?: number;
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
@@ -126,6 +128,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       username: props.username,
       activeRoomLink: null,
     };
+    this.HTTP_STORAGE_BACKEND_URL = props.HTTP_STORAGE_BACKEND_URL;
     this.portal = new Portal(this);
     this.fileManager = new FileManager({
       getFiles: async (fileIds) => {
@@ -138,6 +141,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           `files/rooms/${roomId}`,
           roomKey,
           fileIds,
+          this.HTTP_STORAGE_BACKEND_URL,
         );
       },
       saveFiles: async ({ addedFiles }) => {
@@ -154,6 +158,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             encryptionKey: roomKey,
             maxBytes: FILE_UPLOAD_MAX_BYTES,
           }),
+          HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
         });
       },
     });
@@ -274,6 +279,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         this.portal,
         syncableElements,
         this.excalidrawAPI.getAppState(),
+        this.HTTP_STORAGE_BACKEND_URL,
       );
 
       if (this.isCollaborating() && savedData && savedData.reconciledElements) {
@@ -661,6 +667,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           roomLinkData.roomId,
           roomLinkData.roomKey,
           this.portal.socket,
+          this.HTTP_STORAGE_BACKEND_URL,
         );
         if (elements) {
           this.setLastBroadcastedOrReceivedSceneVersion(

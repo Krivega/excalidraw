@@ -139,17 +139,13 @@ const initializeScene = async (opts: {
   roomKey?: string;
   wsServerUrl?: string;
   wsServerPath?: string;
+  BACKEND_V2_GET: string;
 }): Promise<
   { scene: ExcalidrawInitialDataState | null } & (
     | { isExternalScene: true; id: string; key: string }
     | { isExternalScene: false; id?: null; key?: null }
   )
 > => {
-  const localDataState = importFromLocalStorage();
-
-  let scene: RestoredDataState & {
-    scrollToContent?: boolean;
-  } = await loadScene(null, null, localDataState);
   let {
     id,
     jsonId,
@@ -159,7 +155,13 @@ const initializeScene = async (opts: {
     roomKey,
     wsServerUrl,
     wsServerPath,
+    BACKEND_V2_GET,
   } = opts;
+  const localDataState = importFromLocalStorage();
+
+  let scene: RestoredDataState & {
+    scrollToContent?: boolean;
+  } = await loadScene(null, null, localDataState, BACKEND_V2_GET);
 
   const isExternalScene = !!(
     id ||
@@ -179,7 +181,12 @@ const initializeScene = async (opts: {
       (await openConfirmModal(shareableLinkConfirmDialog))
     ) {
       if (jsonId && jsonPrivateKey) {
-        scene = await loadScene(jsonId, jsonPrivateKey, localDataState);
+        scene = await loadScene(
+          jsonId,
+          jsonPrivateKey,
+          localDataState,
+          BACKEND_V2_GET,
+        );
       }
       scene.scrollToContent = true;
     } else {
@@ -288,6 +295,8 @@ type TProps = {
   wsServerUrl?: string;
   wsServerPath?: string;
   isCollaborating?: boolean;
+  BACKEND_V2_POST: string;
+  BACKEND_V2_GET: string;
 };
 
 const ExcalidrawWrapper = ({
@@ -300,6 +309,8 @@ const ExcalidrawWrapper = ({
   roomKey,
   wsServerUrl,
   wsServerPath,
+  BACKEND_V2_POST,
+  BACKEND_V2_GET,
   isCollaborating: isCollaborationLink,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -426,6 +437,7 @@ const ExcalidrawWrapper = ({
       roomKey,
       wsServerUrl,
       wsServerPath,
+      BACKEND_V2_GET,
     }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);
@@ -527,6 +539,7 @@ const ExcalidrawWrapper = ({
     roomKey,
     wsServerUrl,
     wsServerPath,
+    BACKEND_V2_GET,
   ]);
 
   useEffect(() => {
@@ -634,6 +647,7 @@ const ExcalidrawWrapper = ({
             : getDefaultAppState().viewBackgroundColor,
         },
         files,
+        BACKEND_V2_POST,
       );
 
       if (errorMessage) {
@@ -912,6 +926,8 @@ const ExcalidrawApp = ({
   wsServerUrl,
   wsServerPath,
   isCollaborating,
+  BACKEND_V2_POST,
+  BACKEND_V2_GET,
 }: TProps) => {
   return (
     <TopErrorBoundary>
@@ -927,6 +943,8 @@ const ExcalidrawApp = ({
           wsServerUrl={wsServerUrl}
           wsServerPath={wsServerPath}
           isCollaborating={isCollaborating}
+          BACKEND_V2_POST={BACKEND_V2_POST}
+          BACKEND_V2_GET={BACKEND_V2_GET}
         />
       </Provider>
     </TopErrorBoundary>

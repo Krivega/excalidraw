@@ -751,6 +751,7 @@ const ExcalidrawWrapper = ({
                         appState={appState}
                         files={files}
                         name={excalidrawAPI.getName()}
+                        HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
                         onError={(error) => {
                           excalidrawAPI?.updateScene({
                             appState: {
@@ -813,6 +814,7 @@ const ExcalidrawWrapper = ({
                   excalidrawAPI.getAppState(),
                   excalidrawAPI.getFiles(),
                   excalidrawAPI.getName(),
+                  HTTP_STORAGE_BACKEND_URL,
                 );
               }}
             >

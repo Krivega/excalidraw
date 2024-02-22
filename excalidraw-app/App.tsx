@@ -654,6 +654,7 @@ const ExcalidrawWrapper = ({
         },
         files,
         BACKEND_V2_POST,
+        HTTP_STORAGE_BACKEND_URL,
       );
 
       if (errorMessage) {

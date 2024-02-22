@@ -14,6 +14,8 @@ const username = getRandomUsername();
 
 const BACKEND_V2_GET = import.meta.env.VITE_APP_BACKEND_V2_GET_URL;
 const BACKEND_V2_POST = import.meta.env.VITE_APP_BACKEND_V2_POST_URL;
+const HTTP_STORAGE_BACKEND_URL = import.meta.env
+  .VITE_APP_HTTP_STORAGE_BACKEND_URL;
 
 root.render(
   <StrictMode>
@@ -21,6 +23,7 @@ root.render(
       username={username}
       BACKEND_V2_POST={BACKEND_V2_POST}
       BACKEND_V2_GET={BACKEND_V2_GET}
+      HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
     />
   </StrictMode>,
 );

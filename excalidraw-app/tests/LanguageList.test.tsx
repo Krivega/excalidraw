@@ -16,6 +16,7 @@ describe("Test LanguageList", () => {
         username="test"
         BACKEND_V2_POST="https://json.excalidraw.com/api/v2/post/"
         BACKEND_V2_GET="https://json.excalidraw.com/api/v2/"
+        HTTP_STORAGE_BACKEND_URL="https://json.excalidraw.com/api/storage/v2/"
       />,
     );
 

@@ -32,6 +32,7 @@ export const exportToExcalidrawPlus = async (
   appState: Partial<AppState>,
   files: BinaryFiles,
   name: string,
+  HTTP_STORAGE_BACKEND_URL: string,
 ) => {
   const firebase = await loadFirebaseStorage();
 
@@ -79,6 +80,7 @@ export const exportToExcalidrawPlus = async (
     await storageBackend.saveFilesToStorageBackend({
       prefix: `/migrations/files/scenes/${id}`,
       files: filesToUpload,
+      HTTP_STORAGE_BACKEND_URL,
     });
   }
 
@@ -94,9 +96,18 @@ export const ExportToExcalidrawPlus: React.FC<{
   appState: Partial<AppState>;
   files: BinaryFiles;
   name: string;
+  HTTP_STORAGE_BACKEND_URL: string;
   onError: (error: Error) => void;
   onSuccess: () => void;
-}> = ({ elements, appState, files, name, onError, onSuccess }) => {
+}> = ({
+  elements,
+  appState,
+  files,
+  name,
+  HTTP_STORAGE_BACKEND_URL,
+  onError,
+  onSuccess,
+}) => {
   const { t } = useI18n();
   return (
     <Card color="primary">
@@ -122,7 +133,13 @@ export const ExportToExcalidrawPlus: React.FC<{
         onClick={async () => {
           try {
             trackEvent("export", "eplus", `ui (${getFrame()})`);
-            await exportToExcalidrawPlus(elements, appState, files, name);
+            await exportToExcalidrawPlus(
+              elements,
+              appState,
+              files,
+              name,
+              HTTP_STORAGE_BACKEND_URL,
+            );
             onSuccess();
           } catch (error: any) {
             console.error(error);

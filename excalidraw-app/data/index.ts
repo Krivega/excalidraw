@@ -56,9 +56,6 @@ export const getSyncableElements = (elements: readonly ExcalidrawElement[]) =>
     isSyncableElement(element),
   ) as SyncableExcalidrawElement[];
 
-const BACKEND_V2_GET = import.meta.env.VITE_APP_BACKEND_V2_GET_URL;
-const BACKEND_V2_POST = import.meta.env.VITE_APP_BACKEND_V2_POST_URL;
-
 const generateRoomId = async () => {
   const buffer = new Uint8Array(ROOM_ID_BYTES);
   window.crypto.getRandomValues(buffer);
@@ -179,6 +176,7 @@ const legacy_decodeFromBackend = async ({
 const importFromBackend = async (
   id: string,
   decryptionKey: string,
+  BACKEND_V2_GET: string,
 ): Promise<ImportedDataState> => {
   try {
     const response = await fetch(`${BACKEND_V2_GET}${id}`);
@@ -225,13 +223,14 @@ export const loadScene = async (
   // localStorage user settings which we do not persist on server.
   // Non-optional so we don't forget to pass it even if `undefined`.
   localDataState: ImportedDataState | undefined | null,
+  BACKEND_V2_GET?: string,
 ) => {
   let data;
-  if (id != null && privateKey != null) {
+  if (id != null && privateKey != null && BACKEND_V2_GET) {
     // the private key is used to decrypt the content from the server, take
     // extra care not to leak it
     data = restore(
-      await importFromBackend(id, privateKey),
+      await importFromBackend(id, privateKey, BACKEND_V2_GET),
       localDataState?.appState,
       localDataState?.elements,
       { repairBindings: true, refreshDimensions: false },
@@ -261,6 +260,7 @@ export const exportToBackend = async (
   elements: readonly ExcalidrawElement[],
   appState: Partial<AppState>,
   files: BinaryFiles,
+  BACKEND_V2_POST: string,
 ): Promise<ExportToBackendResult> => {
   const encryptionKey = await generateEncryptionKey("string");
 

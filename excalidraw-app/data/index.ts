@@ -261,6 +261,7 @@ export const exportToBackend = async (
   appState: Partial<AppState>,
   files: BinaryFiles,
   BACKEND_V2_POST: string,
+  HTTP_STORAGE_BACKEND_URL: string,
 ): Promise<ExportToBackendResult> => {
   const encryptionKey = await generateEncryptionKey("string");
 
@@ -301,6 +302,7 @@ export const exportToBackend = async (
       await storageBackend.saveFilesToStorageBackend({
         prefix: `/files/shareLinks/${json.id}`,
         files: filesToUpload,
+        HTTP_STORAGE_BACKEND_URL,
       });
 
       return { url: urlString, errorMessage: null };

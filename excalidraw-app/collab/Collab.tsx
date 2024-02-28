@@ -39,7 +39,6 @@ import {
 import { Mutable, ValueOf } from "../../packages/excalidraw/utility-types";
 import {
   assertNever,
-  preventUnload,
   resolvablePromise,
   throttleRAF,
 } from "../../packages/excalidraw/utils";
@@ -170,10 +169,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private onUmmount: (() => void) | null = null;
 
   componentDidMount() {
-    window.addEventListener(EVENT.BEFORE_UNLOAD, this.beforeUnload);
     window.addEventListener("online", this.onOfflineStatusToggle);
     window.addEventListener("offline", this.onOfflineStatusToggle);
-    window.addEventListener(EVENT.UNLOAD, this.onUnload);
 
     const unsubOnUserFollow = this.excalidrawAPI.onUserFollow((payload) => {
       this.portal.socket && this.portal.broadcastUserFollowed(payload);
@@ -224,21 +221,26 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   componentWillUnmount() {
     window.removeEventListener("online", this.onOfflineStatusToggle);
     window.removeEventListener("offline", this.onOfflineStatusToggle);
-    window.removeEventListener(EVENT.BEFORE_UNLOAD, this.beforeUnload);
-    window.removeEventListener(EVENT.UNLOAD, this.onUnload);
     window.removeEventListener(EVENT.POINTER_MOVE, this.onPointerMove);
     window.removeEventListener(
       EVENT.VISIBILITY_CHANGE,
       this.onVisibilityChange,
     );
+
     if (this.activeIntervalId) {
       window.clearInterval(this.activeIntervalId);
       this.activeIntervalId = null;
     }
+
     if (this.idleTimeoutId) {
       window.clearTimeout(this.idleTimeoutId);
       this.idleTimeoutId = null;
     }
+
+    clearTimeout(this.socketInitializationTimer);
+
+    this.beforeUnload();
+    this.onUnload();
     this.onUmmount?.();
   }
 
@@ -252,7 +254,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.destroySocketClient({ isUnload: true });
   };
 
-  private beforeUnload = withBatchedUpdates((event: BeforeUnloadEvent) => {
+  private beforeUnload = withBatchedUpdates(() => {
     const syncableElements = getSyncableElements(
       this.getSceneElementsIncludingDeleted(),
     );
@@ -265,8 +267,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       // this won't run in time if user decides to leave the site, but
       //  the purpose is to run in immediately after user decides to stay
       this.saveCollabRoomToFirebase(syncableElements);
-
-      preventUnload(event);
     }
   });
 

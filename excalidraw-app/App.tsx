@@ -55,7 +55,6 @@ import {
   getVersion,
   isRunningInIframe,
   isTestEnv,
-  preventUnload,
   resolvablePromise,
 } from "../packages/excalidraw/utils";
 import CustomStats from "./CustomStats";
@@ -549,23 +548,10 @@ const ExcalidrawWrapper = ({
   ]);
 
   useEffect(() => {
-    const unloadHandler = (event: BeforeUnloadEvent) => {
-      LocalData.flushSave();
-
-      if (
-        excalidrawAPI &&
-        LocalData.fileStorage.shouldPreventUnload(
-          excalidrawAPI.getSceneElements(),
-        )
-      ) {
-        preventUnload(event);
-      }
-    };
-    window.addEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
     return () => {
-      window.removeEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
+      LocalData.flushSave();
     };
-  }, [excalidrawAPI]);
+  }, []);
 
   useEffect(() => {
     languageDetector.cacheUserLanguage(langCode);

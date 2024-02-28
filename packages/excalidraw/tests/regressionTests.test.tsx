@@ -5,7 +5,7 @@ import { ExcalidrawElement } from "../element/types";
 import { Excalidraw } from "../index";
 import { CODES, KEYS } from "../keys";
 import { reseed } from "../random";
-import * as Renderer from "../renderer/renderScene";
+import * as StaticScene from "../renderer/staticScene";
 import { setDateTimeForTests } from "../utils";
 import { API } from "./helpers/api";
 import { Keyboard, Pointer, UI } from "./helpers/ui";
@@ -19,7 +19,7 @@ import {
 
 const { h } = window;
 
-const renderStaticScene = vi.spyOn(Renderer, "renderStaticScene");
+const renderStaticScene = vi.spyOn(StaticScene, "renderStaticScene");
 
 const mouse = new Pointer("mouse");
 const finger1 = new Pointer("touch", 1);

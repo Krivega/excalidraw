@@ -162,7 +162,7 @@ const initializeScene = async (opts: {
 
   let scene: RestoredDataState & {
     scrollToContent?: boolean;
-  } = await loadScene(null, null, localDataState, BACKEND_V2_GET);
+  } = await loadScene({ localDataState, BACKEND_V2_GET, token });
 
   const isExternalScene = !!(
     id ||
@@ -182,12 +182,13 @@ const initializeScene = async (opts: {
       (await openConfirmModal(shareableLinkConfirmDialog))
     ) {
       if (jsonId && jsonPrivateKey) {
-        scene = await loadScene(
-          jsonId,
-          jsonPrivateKey,
+        scene = await loadScene({
+          id: jsonId,
+          privateKey: jsonPrivateKey,
           localDataState,
           BACKEND_V2_GET,
-        );
+          token,
+        });
       }
       scene.scrollToContent = true;
     } else {
@@ -640,9 +641,9 @@ const ExcalidrawWrapper = ({
       throw new Error(t("alerts.cannotExportEmptyCanvas"));
     }
     try {
-      const { url, errorMessage } = await exportToBackend(
-        exportedElements,
-        {
+      const { url, errorMessage } = await exportToBackend({
+        elements: exportedElements,
+        appState: {
           ...appState,
           viewBackgroundColor: appState.exportBackground
             ? appState.viewBackgroundColor
@@ -651,7 +652,8 @@ const ExcalidrawWrapper = ({
         files,
         BACKEND_V2_POST,
         HTTP_STORAGE_BACKEND_URL,
-      );
+        token,
+      });
 
       if (errorMessage) {
         throw new Error(errorMessage);

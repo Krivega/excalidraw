@@ -34,6 +34,7 @@ import {
 } from "../app_constants";
 import { encodeFilesForUpload } from "./FileManager";
 import { getStorageBackend } from "./config";
+import getHeaders from "./getHeaders";
 
 export type SyncableExcalidrawElement = ExcalidrawElement & {
   _brand: "SyncableExcalidrawElement";
@@ -173,13 +174,20 @@ const legacy_decodeFromBackend = async ({
   };
 };
 
-const importFromBackend = async (
-  id: string,
-  decryptionKey: string,
-  BACKEND_V2_GET: string,
-): Promise<ImportedDataState> => {
+const importFromBackend = async ({
+  id,
+  decryptionKey,
+  BACKEND_V2_GET,
+  token,
+}: {
+  id: string;
+  decryptionKey: string;
+  BACKEND_V2_GET: string;
+  token?: string;
+}): Promise<ImportedDataState> => {
   try {
-    const response = await fetch(`${BACKEND_V2_GET}${id}`);
+    const headers = getHeaders({ token });
+    const response = await fetch(`${BACKEND_V2_GET}${id}`, { headers });
 
     if (!response.ok) {
       window.alert(t("alerts.importBackendFailed"));
@@ -216,21 +224,33 @@ const importFromBackend = async (
   }
 };
 
-export const loadScene = async (
-  id: string | null,
-  privateKey: string | null,
+export const loadScene = async ({
+  id,
+  privateKey,
+  localDataState,
+  BACKEND_V2_GET,
+  token,
+}: {
+  id?: string | null;
+  privateKey?: string | null;
   // Supply local state even if importing from backend to ensure we restore
   // localStorage user settings which we do not persist on server.
   // Non-optional so we don't forget to pass it even if `undefined`.
-  localDataState: ImportedDataState | undefined | null,
-  BACKEND_V2_GET?: string,
-) => {
+  localDataState: ImportedDataState | undefined | null;
+  BACKEND_V2_GET?: string;
+  token?: string;
+}) => {
   let data;
   if (id != null && privateKey != null && BACKEND_V2_GET) {
     // the private key is used to decrypt the content from the server, take
     // extra care not to leak it
     data = restore(
-      await importFromBackend(id, privateKey, BACKEND_V2_GET),
+      await importFromBackend({
+        id,
+        decryptionKey: privateKey,
+        BACKEND_V2_GET,
+        token,
+      }),
       localDataState?.appState,
       localDataState?.elements,
       { repairBindings: true, refreshDimensions: false },
@@ -256,13 +276,21 @@ type ExportToBackendResult =
   | { url: null; errorMessage: string }
   | { url: string; errorMessage: null };
 
-export const exportToBackend = async (
-  elements: readonly ExcalidrawElement[],
-  appState: Partial<AppState>,
-  files: BinaryFiles,
-  BACKEND_V2_POST: string,
-  HTTP_STORAGE_BACKEND_URL: string,
-): Promise<ExportToBackendResult> => {
+export const exportToBackend = async ({
+  elements,
+  appState,
+  files,
+  BACKEND_V2_POST,
+  HTTP_STORAGE_BACKEND_URL,
+  token,
+}: {
+  elements: readonly ExcalidrawElement[];
+  appState: Partial<AppState>;
+  files: BinaryFiles;
+  BACKEND_V2_POST: string;
+  HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
+}): Promise<ExportToBackendResult> => {
   const encryptionKey = await generateEncryptionKey("string");
 
   const payload = await compressData(
@@ -286,9 +314,11 @@ export const exportToBackend = async (
       maxBytes: FILE_UPLOAD_MAX_BYTES,
     });
 
+    const headers = getHeaders({ token });
     const response = await fetch(BACKEND_V2_POST, {
       method: "POST",
       body: payload.buffer,
+      headers,
     });
     const json = await response.json();
     if (json.id) {

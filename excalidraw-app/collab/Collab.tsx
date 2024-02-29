@@ -412,7 +412,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     }
   };
 
-  private fallbackInitializationHandler: null | (() => any) = null;
+  private fallbackInitializationHandler: null | ((error: Error) => any) = null;
 
   startCollaboration = async (
     existingRoomLinkData: null | {
@@ -454,7 +454,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       /* webpackChunkName: "socketIoClient" */ "socket.io-client"
     );
 
-    const fallbackInitializationHandler = () => {
+    const fallbackInitializationHandler = (error: Error) => {
+      // eslint-disable-next-line no-console
+      console.log("connect_error", error);
       this.initializeRoom({
         roomLinkData: existingRoomLinkData,
         fetchScene: true,

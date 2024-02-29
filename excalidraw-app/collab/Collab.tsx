@@ -81,6 +81,7 @@ export const isOfflineAtom = atom(false);
 interface CollabState {
   errorMessage: string | null;
   username: string;
+  token?: string;
   activeRoomLink: string | null;
 }
 
@@ -104,6 +105,7 @@ export interface CollabAPI {
 
 interface CollabProps {
   username: string;
+  token?: string;
   HTTP_STORAGE_BACKEND_URL: string;
   excalidrawAPI: ExcalidrawImperativeAPI;
 }
@@ -125,13 +127,14 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.state = {
       errorMessage: null,
       username: props.username,
+      token: props.token,
       activeRoomLink: null,
     };
     this.HTTP_STORAGE_BACKEND_URL = props.HTTP_STORAGE_BACKEND_URL;
     this.portal = new Portal(this);
     this.fileManager = new FileManager({
       getFiles: async (filesIds) => {
-        const { roomId, roomKey, token } = this.portal;
+        const { roomId, roomKey } = this.portal;
         if (!roomId || !roomKey) {
           throw new AbortError();
         }
@@ -141,11 +144,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           decryptionKey: roomKey,
           filesIds,
           HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
-          token,
+          token: this.state.token,
         });
       },
       saveFiles: async ({ addedFiles }) => {
-        const { roomId, roomKey, token } = this.portal;
+        const { roomId, roomKey } = this.portal;
         if (!roomId || !roomKey) {
           throw new AbortError();
         }
@@ -159,7 +162,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             maxBytes: FILE_UPLOAD_MAX_BYTES,
           }),
           HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
-          token,
+          token: this.state.token,
         });
       },
     });
@@ -282,7 +285,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         elements: syncableElements,
         appState: this.excalidrawAPI.getAppState(),
         HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
-        token: this.portal.token,
+        token: this.state.token,
       });
 
       if (this.isCollaborating() && savedData && savedData.reconciledElements) {
@@ -420,7 +423,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       roomKey: string;
       wsServerUrl: string;
       wsServerPath?: string;
-      token?: string;
     },
   ): Promise<ImportedDataState | null> => {
     if (this.portal.socket) {
@@ -431,11 +433,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     let roomKey: string | undefined;
     let wsServerUrl: string | undefined;
     let wsServerPath: string | undefined;
-    let token: string | undefined;
 
     if (existingRoomLinkData) {
-      ({ roomId, roomKey, wsServerUrl, wsServerPath, token } =
-        existingRoomLinkData);
+      ({ roomId, roomKey, wsServerUrl, wsServerPath } = existingRoomLinkData);
     } else {
       ({ roomId, roomKey } = await generateCollaborationLinkData());
       window.history.pushState(
@@ -470,6 +470,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       if (!wsServerUrl) {
         throw new Error("No server url provided");
       }
+      const token = this.state.token;
 
       this.portal.socket = this.portal.open({
         socket: socketIOClient(wsServerUrl, {
@@ -479,7 +480,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         }),
         id: roomId,
         key: roomKey,
-        token,
       });
 
       this.portal.socket.once("connect_error", fallbackInitializationHandler);
@@ -661,7 +661,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         roomLinkData: {
           roomId: string;
           roomKey: string;
-          token?: string;
         } | null;
       }
     | { fetchScene: false; roomLinkData?: null }) => {
@@ -682,7 +681,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           roomKey: roomLinkData.roomKey,
           socket: this.portal.socket,
           HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
-          token: roomLinkData.token,
+          token: this.state.token,
         });
         if (elements) {
           this.setLastBroadcastedOrReceivedSceneVersion(

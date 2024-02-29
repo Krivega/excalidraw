@@ -238,7 +238,6 @@ const initializeScene = async (opts: {
       roomKey,
       wsServerUrl,
       wsServerPath,
-      token,
     });
 
     return {
@@ -894,6 +893,7 @@ const ExcalidrawWrapper = ({
         {excalidrawAPI && !isCollabDisabled && (
           <Collab
             username={username}
+            token={token}
             excalidrawAPI={excalidrawAPI}
             HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
           />

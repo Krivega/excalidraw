@@ -23,10 +23,7 @@ export interface StorageBackend {
     HTTP_STORAGE_BACKEND_URL: string;
     token?: string;
   }) => Promise<readonly ExcalidrawElement[] | null>;
-  saveFilesToStorageBackend: ({
-    prefix,
-    files,
-  }: {
+  saveFilesToStorageBackend: (parameters: {
     prefix: string;
     files: {
       id: FileId;

@@ -24,6 +24,7 @@ import {
 } from "../../packages/excalidraw/types";
 import Portal from "../collab/Portal";
 import { reconcileElements } from "../collab/reconciliation";
+import getHeaders from "./getHeaders";
 import { StoredScene } from "./StorageBackend";
 
 const SCENE_VERSION_LENGTH_BYTES = 4;
@@ -47,12 +48,19 @@ export const isSavedToHttpStorage = (
   return true;
 };
 
-export const saveToHttpStorage = async (
-  portal: Portal,
-  elements: readonly SyncableExcalidrawElement[],
-  appState: AppState,
-  HTTP_STORAGE_BACKEND_URL: string,
-) => {
+export const saveToHttpStorage = async ({
+  portal,
+  elements,
+  appState,
+  HTTP_STORAGE_BACKEND_URL,
+  token,
+}: {
+  portal: Portal;
+  elements: readonly SyncableExcalidrawElement[];
+  appState: AppState;
+  HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
+}) => {
   const { roomId, roomKey, socket } = portal;
   if (
     // if no room exists, consider the room saved because there's nothing we can
@@ -66,21 +74,24 @@ export const saveToHttpStorage = async (
   }
 
   const sceneVersion = getSceneVersion(elements);
+  const headers = getHeaders({ token });
   const getResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
+    { headers },
   );
 
   if (!getResponse.ok && getResponse.status !== 404) {
     return false;
   }
   if (getResponse.status === 404) {
-    const result: boolean = await saveElementsToBackend(
+    const result: boolean = await saveElementsToBackend({
       roomKey,
       roomId,
-      [...elements],
+      elements: [...elements],
       sceneVersion,
       HTTP_STORAGE_BACKEND_URL,
-    );
+      token,
+    });
     if (result) {
       return {
         reconciledElements: null,
@@ -101,13 +112,14 @@ export const saveToHttpStorage = async (
     reconcileElements(elements, existingElements, appState),
   );
 
-  const result: boolean = await saveElementsToBackend(
+  const result: boolean = await saveElementsToBackend({
     roomKey,
     roomId,
-    reconciledElements,
+    elements: reconciledElements,
     sceneVersion,
     HTTP_STORAGE_BACKEND_URL,
-  );
+    token,
+  });
 
   if (result) {
     httpStorageSceneVersionCache.set(socket, sceneVersion);
@@ -118,14 +130,23 @@ export const saveToHttpStorage = async (
   return false;
 };
 
-export const loadFromHttpStorage = async (
-  roomId: string,
-  roomKey: string,
-  socket: ISocketIO | null,
-  HTTP_STORAGE_BACKEND_URL: string,
-): Promise<readonly ExcalidrawElement[] | null> => {
+export const loadFromHttpStorage = async ({
+  roomId,
+  roomKey,
+  socket,
+  HTTP_STORAGE_BACKEND_URL,
+  token,
+}: {
+  roomId: string;
+  roomKey: string;
+  socket: ISocketIO | null;
+  HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
+}): Promise<readonly ExcalidrawElement[] | null> => {
+  const headers = getHeaders({ token });
   const getResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
+    { headers },
   );
 
   const buffer = await getResponse.arrayBuffer();
@@ -162,13 +183,13 @@ const getElementsFromBuffer = async (
 };
 
 export const saveFilesToHttpStorage = async ({
-  prefix,
   files,
   HTTP_STORAGE_BACKEND_URL,
+  token,
 }: {
-  prefix: string;
   files: { id: FileId; buffer: Uint8Array }[];
   HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
 }) => {
   const erroredFiles = new Map<FileId, true>();
   const savedFiles = new Map<FileId, true>();
@@ -178,9 +199,11 @@ export const saveFilesToHttpStorage = async ({
       try {
         const payloadBlob = new Blob([buffer]);
         const payload = await new Response(payloadBlob).arrayBuffer();
+        const headers = getHeaders({ token });
         await fetch(`${HTTP_STORAGE_BACKEND_URL}/files/${id}`, {
           method: "PUT",
           body: payload,
+          headers,
         });
         savedFiles.set(id, true);
       } catch (error: any) {
@@ -192,12 +215,17 @@ export const saveFilesToHttpStorage = async ({
   return { savedFiles, erroredFiles };
 };
 
-export const loadFilesFromHttpStorage = async (
-  prefix: string,
-  decryptionKey: string,
-  filesIds: readonly FileId[],
-  HTTP_STORAGE_BACKEND_URL: string,
-) => {
+export const loadFilesFromHttpStorage = async ({
+  decryptionKey,
+  filesIds,
+  HTTP_STORAGE_BACKEND_URL,
+  token,
+}: {
+  decryptionKey: string;
+  filesIds: readonly FileId[];
+  HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
+}) => {
   const loadedFiles: BinaryFileData[] = [];
   const erroredFiles = new Map<FileId, true>();
 
@@ -205,7 +233,11 @@ export const loadFilesFromHttpStorage = async (
   await Promise.all(
     [...new Set(filesIds)].map(async (id) => {
       try {
-        const response = await fetch(`${HTTP_STORAGE_BACKEND_URL}/files/${id}`);
+        const headers = getHeaders({ token });
+        const response = await fetch(
+          `${HTTP_STORAGE_BACKEND_URL}/files/${id}`,
+          { headers },
+        );
         if (response.status < 400) {
           const arrayBuffer = await response.arrayBuffer();
 
@@ -238,13 +270,21 @@ export const loadFilesFromHttpStorage = async (
   return { loadedFiles, erroredFiles };
 };
 
-const saveElementsToBackend = async (
-  roomKey: string,
-  roomId: string,
-  elements: SyncableExcalidrawElement[],
-  sceneVersion: number,
-  HTTP_STORAGE_BACKEND_URL: string,
-) => {
+const saveElementsToBackend = async ({
+  roomKey,
+  roomId,
+  elements,
+  sceneVersion,
+  HTTP_STORAGE_BACKEND_URL,
+  token,
+}: {
+  roomKey: string;
+  roomId: string;
+  elements: SyncableExcalidrawElement[];
+  sceneVersion: number;
+  HTTP_STORAGE_BACKEND_URL: string;
+  token?: string;
+}) => {
   const { ciphertext, iv } = await encryptElements(roomKey, elements);
 
   // Concatenate Scene Version, IV with encrypted data (IV does not have to be secret).
@@ -255,10 +295,12 @@ const saveElementsToBackend = async (
   const payloadBlob = await new Response(
     new Blob([sceneVersionBuffer, iv.buffer, ciphertext]),
   ).arrayBuffer();
+  const headers = getHeaders({ token });
   const putResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
     {
       method: "PUT",
+      headers,
       body: payloadBlob,
     },
   );

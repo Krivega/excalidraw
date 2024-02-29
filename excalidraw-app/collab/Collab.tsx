@@ -130,21 +130,22 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.HTTP_STORAGE_BACKEND_URL = props.HTTP_STORAGE_BACKEND_URL;
     this.portal = new Portal(this);
     this.fileManager = new FileManager({
-      getFiles: async (fileIds) => {
-        const { roomId, roomKey } = this.portal;
+      getFiles: async (filesIds) => {
+        const { roomId, roomKey, token } = this.portal;
         if (!roomId || !roomKey) {
           throw new AbortError();
         }
         const storageBackend = await getStorageBackend();
-        return storageBackend.loadFilesFromStorageBackend(
-          `files/rooms/${roomId}`,
-          roomKey,
-          fileIds,
-          this.HTTP_STORAGE_BACKEND_URL,
-        );
+        return storageBackend.loadFilesFromStorageBackend({
+          prefix: `files/rooms/${roomId}`,
+          decryptionKey: roomKey,
+          filesIds,
+          HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
+          token,
+        });
       },
       saveFiles: async ({ addedFiles }) => {
-        const { roomId, roomKey } = this.portal;
+        const { roomId, roomKey, token } = this.portal;
         if (!roomId || !roomKey) {
           throw new AbortError();
         }
@@ -158,6 +159,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             maxBytes: FILE_UPLOAD_MAX_BYTES,
           }),
           HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
+          token,
         });
       },
     });
@@ -275,12 +277,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   ) => {
     try {
       const storageBackend = await getStorageBackend();
-      const savedData = await storageBackend.saveToStorageBackend(
-        this.portal,
-        syncableElements,
-        this.excalidrawAPI.getAppState(),
-        this.HTTP_STORAGE_BACKEND_URL,
-      );
+      const savedData = await storageBackend.saveToStorageBackend({
+        portal: this.portal,
+        elements: syncableElements,
+        appState: this.excalidrawAPI.getAppState(),
+        HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
+        token: this.portal.token,
+      });
 
       if (this.isCollaborating() && savedData && savedData.reconciledElements) {
         this.handleRemoteSceneUpdate(
@@ -417,6 +420,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       roomKey: string;
       wsServerUrl: string;
       wsServerPath?: string;
+      token?: string;
     },
   ): Promise<ImportedDataState | null> => {
     if (this.portal.socket) {
@@ -427,9 +431,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     let roomKey: string | undefined;
     let wsServerUrl: string | undefined;
     let wsServerPath: string | undefined;
+    let token: string | undefined;
 
     if (existingRoomLinkData) {
-      ({ roomId, roomKey, wsServerUrl, wsServerPath } = existingRoomLinkData);
+      ({ roomId, roomKey, wsServerUrl, wsServerPath, token } =
+        existingRoomLinkData);
     } else {
       ({ roomId, roomKey } = await generateCollaborationLinkData());
       window.history.pushState(
@@ -463,14 +469,16 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         throw new Error("No server url provided");
       }
 
-      this.portal.socket = this.portal.open(
-        socketIOClient(wsServerUrl, {
+      this.portal.socket = this.portal.open({
+        socket: socketIOClient(wsServerUrl, {
           transports: ["websocket", "polling"],
           path: wsServerPath,
+          auth: token !== undefined ? { token } : undefined,
         }),
-        roomId,
-        roomKey,
-      );
+        id: roomId,
+        key: roomKey,
+        token,
+      });
 
       this.portal.socket.once("connect_error", fallbackInitializationHandler);
     } catch (error: any) {
@@ -648,7 +656,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   }:
     | {
         fetchScene: true;
-        roomLinkData: { roomId: string; roomKey: string } | null;
+        roomLinkData: {
+          roomId: string;
+          roomKey: string;
+          token?: string;
+        } | null;
       }
     | { fetchScene: false; roomLinkData?: null }) => {
     clearTimeout(this.socketInitializationTimer!);
@@ -663,12 +675,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
       try {
         const storageBackend = await getStorageBackend();
-        const elements = await storageBackend.loadFromStorageBackend(
-          roomLinkData.roomId,
-          roomLinkData.roomKey,
-          this.portal.socket,
-          this.HTTP_STORAGE_BACKEND_URL,
-        );
+        const elements = await storageBackend.loadFromStorageBackend({
+          roomId: roomLinkData.roomId,
+          roomKey: roomLinkData.roomKey,
+          socket: this.portal.socket,
+          HTTP_STORAGE_BACKEND_URL: this.HTTP_STORAGE_BACKEND_URL,
+          token: roomLinkData.token,
+        });
         if (elements) {
           this.setLastBroadcastedOrReceivedSceneVersion(
             getSceneVersion(elements),

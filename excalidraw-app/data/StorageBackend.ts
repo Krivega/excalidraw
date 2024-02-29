@@ -9,18 +9,20 @@ import Portal from "../collab/Portal";
 
 export interface StorageBackend {
   isSaved: (portal: Portal, elements: readonly ExcalidrawElement[]) => boolean;
-  saveToStorageBackend: (
-    portal: Portal,
-    elements: readonly SyncableExcalidrawElement[],
-    appState: AppState,
-    HTTP_STORAGE_BACKEND_URL: string,
-  ) => Promise<false | { reconciledElements: any }>;
-  loadFromStorageBackend: (
-    roomId: string,
-    roomKey: string,
-    socket: ISocketIO | null,
-    HTTP_STORAGE_BACKEND_URL: string,
-  ) => Promise<readonly ExcalidrawElement[] | null>;
+  saveToStorageBackend: (parameters: {
+    portal: Portal;
+    elements: readonly SyncableExcalidrawElement[];
+    appState: AppState;
+    HTTP_STORAGE_BACKEND_URL: string;
+    token?: string;
+  }) => Promise<false | { reconciledElements: any }>;
+  loadFromStorageBackend: (parameters: {
+    roomId: string;
+    roomKey: string;
+    socket: ISocketIO | null;
+    HTTP_STORAGE_BACKEND_URL: string;
+    token?: string;
+  }) => Promise<readonly ExcalidrawElement[] | null>;
   saveFilesToStorageBackend: ({
     prefix,
     files,
@@ -31,16 +33,18 @@ export interface StorageBackend {
       buffer: Uint8Array;
     }[];
     HTTP_STORAGE_BACKEND_URL: string;
+    token?: string;
   }) => Promise<{
     savedFiles: Map<FileId, true>;
     erroredFiles: Map<FileId, true>;
   }>;
-  loadFilesFromStorageBackend: (
-    prefix: string,
-    decryptionKey: string,
-    filesIds: readonly FileId[],
-    HTTP_STORAGE_BACKEND_URL: string,
-  ) => Promise<{
+  loadFilesFromStorageBackend: (parameters: {
+    prefix: string;
+    decryptionKey: string;
+    filesIds: readonly FileId[];
+    HTTP_STORAGE_BACKEND_URL: string;
+    token?: string;
+  }) => Promise<{
     loadedFiles: BinaryFileData[];
     erroredFiles: Map<FileId, true>;
   }>;

@@ -136,6 +136,7 @@ const initializeScene = async (opts: {
   externalUrl?: string;
   roomId?: string;
   roomKey?: string;
+  token?: string;
   wsServerUrl?: string;
   wsServerPath?: string;
   BACKEND_V2_GET: string;
@@ -152,6 +153,7 @@ const initializeScene = async (opts: {
     externalUrl,
     roomId,
     roomKey,
+    token,
     wsServerUrl,
     wsServerPath,
     BACKEND_V2_GET,
@@ -235,6 +237,7 @@ const initializeScene = async (opts: {
       roomKey,
       wsServerUrl,
       wsServerPath,
+      token,
     });
 
     return {
@@ -291,6 +294,7 @@ type TProps = {
   externalUrl?: string;
   roomId?: string;
   roomKey?: string;
+  token?: string;
   wsServerUrl?: string;
   wsServerPath?: string;
   isCollaborating?: boolean;
@@ -307,6 +311,7 @@ const ExcalidrawWrapper = ({
   externalUrl,
   roomId,
   roomKey,
+  token,
   wsServerUrl,
   wsServerPath,
   BACKEND_V2_POST,
@@ -384,7 +389,7 @@ const ExcalidrawWrapper = ({
             });
         }
       } else {
-        const fileIds =
+        const filesIds =
           data.scene.elements?.reduce((acc, element) => {
             if (isInitializedImageElement(element)) {
               return acc.concat(element.fileId);
@@ -394,12 +399,13 @@ const ExcalidrawWrapper = ({
 
         if (data.isExternalScene) {
           storageBackend
-            ?.loadFilesFromStorageBackend(
-              `${FIREBASE_STORAGE_PREFIXES.shareLinkFiles}/${data.id}`,
-              data.key,
-              fileIds,
+            ?.loadFilesFromStorageBackend({
+              prefix: `${FIREBASE_STORAGE_PREFIXES.shareLinkFiles}/${data.id}`,
+              decryptionKey: data.key,
+              filesIds,
               HTTP_STORAGE_BACKEND_URL,
-            )
+              token,
+            })
             .then(({ loadedFiles, erroredFiles }) => {
               excalidrawAPI.addFiles(loadedFiles);
               updateStaleImageStatuses({
@@ -409,9 +415,9 @@ const ExcalidrawWrapper = ({
               });
             });
         } else if (isInitialLoad) {
-          if (fileIds.length) {
+          if (filesIds.length) {
             LocalData.fileStorage
-              .getFiles(fileIds)
+              .getFiles(filesIds)
               .then(({ loadedFiles, erroredFiles }) => {
                 if (loadedFiles.length) {
                   excalidrawAPI.addFiles(loadedFiles);
@@ -425,7 +431,9 @@ const ExcalidrawWrapper = ({
           }
           // on fresh load, clear unused files from IDB (from previous
           // session)
-          LocalData.fileStorage.clearObsoleteFiles({ currentFileIds: fileIds });
+          LocalData.fileStorage.clearObsoleteFiles({
+            currentFileIds: filesIds,
+          });
         }
       }
     };
@@ -439,6 +447,7 @@ const ExcalidrawWrapper = ({
       externalUrl,
       roomId,
       roomKey,
+      token,
       wsServerUrl,
       wsServerPath,
       BACKEND_V2_GET,
@@ -475,7 +484,7 @@ const ExcalidrawWrapper = ({
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_FILES)) {
           const elements = excalidrawAPI.getSceneElementsIncludingDeleted();
           const currFiles = excalidrawAPI.getFiles();
-          const fileIds =
+          const filesIds =
             elements?.reduce((acc, element) => {
               if (
                 isInitializedImageElement(element) &&
@@ -486,9 +495,9 @@ const ExcalidrawWrapper = ({
               }
               return acc;
             }, [] as FileId[]) || [];
-          if (fileIds.length) {
+          if (filesIds.length) {
             LocalData.fileStorage
-              .getFiles(fileIds)
+              .getFiles(filesIds)
               .then(({ loadedFiles, erroredFiles }) => {
                 if (loadedFiles.length) {
                   excalidrawAPI.addFiles(loadedFiles);
@@ -545,6 +554,7 @@ const ExcalidrawWrapper = ({
     wsServerPath,
     BACKEND_V2_GET,
     HTTP_STORAGE_BACKEND_URL,
+    token,
   ]);
 
   useEffect(() => {
@@ -922,6 +932,7 @@ const ExcalidrawApp = ({
   externalUrl,
   roomId,
   roomKey,
+  token,
   wsServerUrl,
   wsServerPath,
   isCollaborating,
@@ -940,6 +951,7 @@ const ExcalidrawApp = ({
           externalUrl={externalUrl}
           roomId={roomId}
           roomKey={roomKey}
+          token={token}
           wsServerUrl={wsServerUrl}
           wsServerPath={wsServerPath}
           isCollaborating={isCollaborating}

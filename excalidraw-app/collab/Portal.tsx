@@ -12,9 +12,9 @@ import {
 } from "../../packages/excalidraw/types";
 import { FILE_UPLOAD_TIMEOUT, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
 import {
-  isSyncableElement,
   SocketUpdateData,
   SocketUpdateDataSource,
+  isSyncableElement,
 } from "../data";
 import { TCollabClass } from "./Collab";
 import { BroadcastedExcalidrawElement } from "./reconciliation";
@@ -25,13 +25,24 @@ class Portal {
   socketInitialized: boolean = false; // we don't want the socket to emit any updates until it is fully initialized
   roomId: string | null = null;
   roomKey: string | null = null;
+  token?: string = undefined;
   broadcastedElementVersions: Map<string, number> = new Map();
 
   constructor(collab: TCollabClass) {
     this.collab = collab;
   }
 
-  open(socket: Socket, id: string, key: string) {
+  open({
+    socket,
+    id,
+    key,
+    token,
+  }: {
+    socket: Socket;
+    id: string;
+    key: string;
+    token?: string;
+  }) {
     this.socket = socket;
     this.roomId = id;
     this.roomKey = key;
@@ -70,6 +81,7 @@ class Portal {
     this.socket = null;
     this.roomId = null;
     this.roomKey = null;
+    this.token = undefined;
     this.socketInitialized = false;
     this.broadcastedElementVersions = new Map();
   }

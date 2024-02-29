@@ -217,11 +217,15 @@ const createFirebaseSceneDocument = async (
   } as FirebaseStoredScene;
 };
 
-export const saveToFirebase = async (
-  portal: Portal,
-  elements: readonly SyncableExcalidrawElement[],
-  appState: AppState,
-) => {
+export const saveToFirebase = async ({
+  portal,
+  elements,
+  appState,
+}: {
+  portal: Portal;
+  elements: readonly SyncableExcalidrawElement[];
+  appState: AppState;
+}) => {
   const { roomId, roomKey, socket } = portal;
   if (
     // bail if no room exists as there's nothing we can do at this point
@@ -283,11 +287,15 @@ export const saveToFirebase = async (
   return { reconciledElements: savedData.reconciledElements };
 };
 
-export const loadFromFirebase = async (
-  roomId: string,
-  roomKey: string,
-  socket: Socket | null,
-): Promise<readonly ExcalidrawElement[] | null> => {
+export const loadFromFirebase = async ({
+  roomId,
+  roomKey,
+  socket,
+}: {
+  roomId: string;
+  roomKey: string;
+  socket: Socket | null;
+}): Promise<readonly ExcalidrawElement[] | null> => {
   const firebase = await loadFirestore();
   const db = firebase.firestore();
 
@@ -308,11 +316,15 @@ export const loadFromFirebase = async (
   return restoreElements(elements, null);
 };
 
-export const loadFilesFromFirebase = async (
-  prefix: string,
-  decryptionKey: string,
-  filesIds: readonly FileId[],
-) => {
+export const loadFilesFromFirebase = async ({
+  prefix,
+  decryptionKey,
+  filesIds,
+}: {
+  prefix: string;
+  decryptionKey: string;
+  filesIds: readonly FileId[];
+}) => {
   const loadedFiles: BinaryFileData[] = [];
   const erroredFiles = new Map<FileId, true>();
 

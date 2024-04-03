@@ -24,6 +24,7 @@ root.render(
       BACKEND_V2_POST={BACKEND_V2_POST}
       BACKEND_V2_GET={BACKEND_V2_GET}
       HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
+      onError={console.error}
     />
   </StrictMode>,
 );

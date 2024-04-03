@@ -178,11 +178,13 @@ const importFromBackend = async ({
   id,
   decryptionKey,
   BACKEND_V2_GET,
+  onError,
   token,
 }: {
   id: string;
   decryptionKey: string;
   BACKEND_V2_GET: string;
+  onError: (error: Error) => void;
   token?: string;
 }): Promise<ImportedDataState> => {
   try {
@@ -190,7 +192,7 @@ const importFromBackend = async ({
     const response = await fetch(`${BACKEND_V2_GET}${id}`, { headers });
 
     if (!response.ok) {
-      window.alert(t("alerts.importBackendFailed"));
+      onError(new Error(t("alerts.importBackendFailed")));
       return {};
     }
     const buffer = await response.arrayBuffer();
@@ -218,7 +220,7 @@ const importFromBackend = async ({
       return legacy_decodeFromBackend({ buffer, decryptionKey });
     }
   } catch (error: any) {
-    window.alert(t("alerts.importBackendFailed"));
+    onError(new Error(t("alerts.importBackendFailed")));
     console.error(error);
     return {};
   }
@@ -229,6 +231,7 @@ export const loadScene = async ({
   privateKey,
   localDataState,
   BACKEND_V2_GET,
+  onError,
   token,
 }: {
   id?: string | null;
@@ -238,6 +241,7 @@ export const loadScene = async ({
   // Non-optional so we don't forget to pass it even if `undefined`.
   localDataState: ImportedDataState | undefined | null;
   BACKEND_V2_GET?: string;
+  onError: (error: Error) => void;
   token?: string;
 }) => {
   let data;
@@ -249,6 +253,7 @@ export const loadScene = async ({
         id,
         decryptionKey: privateKey,
         BACKEND_V2_GET,
+        onError,
         token,
       }),
       localDataState?.appState,

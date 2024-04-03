@@ -111,6 +111,7 @@ interface CollabProps {
   token?: string;
   HTTP_STORAGE_BACKEND_URL: string;
   excalidrawAPI: ExcalidrawImperativeAPI;
+  onError: (error: Error) => void;
 }
 
 class Collab extends PureComponent<CollabProps, CollabState> {
@@ -120,6 +121,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   activeIntervalId: number | null;
   idleTimeoutId: number | null;
   HTTP_STORAGE_BACKEND_URL: string;
+  onError: (error: Error) => void;
 
   private socketInitializationTimer?: number;
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
@@ -135,6 +137,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       activeRoomLink: null,
     };
     this.HTTP_STORAGE_BACKEND_URL = props.HTTP_STORAGE_BACKEND_URL;
+    this.onError = props.onError;
     this.portal = new Portal(this);
     this.fileManager = new FileManager({
       getFiles: async (filesIds) => {
@@ -429,7 +432,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       );
       return JSON.parse(decodedData);
     } catch (error) {
-      window.alert(t("alerts.decryptFailed"));
+      this.onError(new Error(t("alerts.decryptFailed")));
       console.error(error);
       return {
         type: WS_SUBTYPES.INVALID_RESPONSE,

@@ -156,6 +156,7 @@ const initializeScene = async (opts: {
   wsServerUrl?: string;
   wsServerPath?: string;
   BACKEND_V2_GET: string;
+  onError: (error: Error) => void;
 }): Promise<
   { scene: ExcalidrawInitialDataState | null } & (
     | { isExternalScene: true; id: string; key: string }
@@ -173,12 +174,13 @@ const initializeScene = async (opts: {
     wsServerUrl,
     wsServerPath,
     BACKEND_V2_GET,
+    onError,
   } = opts;
   const localDataState = importFromLocalStorage();
 
   let scene: RestoredDataState & {
     scrollToContent?: boolean;
-  } = await loadScene({ localDataState, BACKEND_V2_GET, token });
+  } = await loadScene({ localDataState, BACKEND_V2_GET, token, onError });
 
   const isExternalScene = !!(
     id ||
@@ -204,6 +206,7 @@ const initializeScene = async (opts: {
           localDataState,
           BACKEND_V2_GET,
           token,
+          onError,
         });
       }
       scene.scrollToContent = true;
@@ -317,6 +320,7 @@ type TProps = {
   BACKEND_V2_POST: string;
   BACKEND_V2_GET: string;
   HTTP_STORAGE_BACKEND_URL: string;
+  onError: (error: Error) => void;
 };
 
 const ExcalidrawWrapper = ({
@@ -333,6 +337,7 @@ const ExcalidrawWrapper = ({
   BACKEND_V2_POST,
   BACKEND_V2_GET,
   HTTP_STORAGE_BACKEND_URL,
+  onError,
   isCollaborating: isCollaborationLink,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -470,6 +475,7 @@ const ExcalidrawWrapper = ({
       wsServerUrl,
       wsServerPath,
       BACKEND_V2_GET,
+      onError,
     }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);
@@ -578,6 +584,7 @@ const ExcalidrawWrapper = ({
     BACKEND_V2_GET,
     HTTP_STORAGE_BACKEND_URL,
     token,
+    onError,
   ]);
 
   useEffect(() => {
@@ -951,6 +958,7 @@ const ExcalidrawWrapper = ({
             token={token}
             excalidrawAPI={excalidrawAPI}
             HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
+            onError={onError}
           />
         )}
 
@@ -1151,6 +1159,7 @@ const ExcalidrawApp = ({
   BACKEND_V2_POST,
   BACKEND_V2_GET,
   HTTP_STORAGE_BACKEND_URL,
+  onError,
 }: TProps) => {
   return (
     <TopErrorBoundary>
@@ -1170,6 +1179,7 @@ const ExcalidrawApp = ({
           BACKEND_V2_POST={BACKEND_V2_POST}
           BACKEND_V2_GET={BACKEND_V2_GET}
           HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
+          onError={onError}
         />
       </Provider>
     </TopErrorBoundary>

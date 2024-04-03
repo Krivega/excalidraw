@@ -1,46 +1,40 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  Children,
-  cloneElement,
-} from "react";
-import ExampleSidebar from "./sidebar/ExampleSidebar";
-
 import type * as TExcalidraw from "@excalidraw/excalidraw";
-
-import { nanoid } from "nanoid";
-
-import {
-  resolvablePromise,
-  ResolvablePromise,
-  distance2d,
-  fileOpen,
-  withBatchedUpdates,
-  withBatchedUpdatesThrottled,
-} from "../utils";
-
-import CustomFooter from "./CustomFooter";
-import MobileFooter from "./MobileFooter";
-import initialData from "../initialData";
-
+import type { ImportedLibraryData } from "@excalidraw/excalidraw/dist/excalidraw/data/types";
+import type {
+  NonDeletedExcalidrawElement,
+  Theme,
+} from "@excalidraw/excalidraw/dist/excalidraw/element/types";
 import type {
   AppState,
   BinaryFileData,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
+  PointerDownState as ExcalidrawPointerDownState,
   Gesture,
   LibraryItems,
-  PointerDownState as ExcalidrawPointerDownState,
 } from "@excalidraw/excalidraw/dist/excalidraw/types";
-import type {
-  NonDeletedExcalidrawElement,
-  Theme,
-} from "@excalidraw/excalidraw/dist/excalidraw/element/types";
-import type { ImportedLibraryData } from "@excalidraw/excalidraw/dist/excalidraw/data/types";
-
+import { nanoid } from "nanoid";
+import React, {
+  Children,
+  cloneElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import initialData from "../initialData";
+import {
+  ResolvablePromise,
+  distance2d,
+  fileOpen,
+  resolvablePromise,
+  withBatchedUpdates,
+  withBatchedUpdatesThrottled,
+} from "../utils";
 import "./App.scss";
+import CustomFooter from "./CustomFooter";
+import MobileFooter from "./MobileFooter";
+import ExampleSidebar from "./sidebar/ExampleSidebar";
 
 type Comment = {
   x: number;
@@ -71,6 +65,7 @@ export interface AppProps {
   customArgs?: any[];
   children: React.ReactNode;
   excalidrawLib: typeof TExcalidraw;
+  onError: (error: Error) => void;
 }
 
 export default function App({
@@ -79,6 +74,7 @@ export default function App({
   customArgs,
   children,
   excalidrawLib,
+  onError,
 }: AppProps) {
   const {
     exportToCanvas,
@@ -268,12 +264,12 @@ export default function App({
           <LiveCollaborationTrigger
             isCollaborating={isCollaborating}
             onSelect={() => {
-              window.alert("Collab dialog clicked");
+              onError(new Error("Collab dialog clicked"));
             }}
           />
         )}
         <button
-          onClick={() => alert("This is an empty top right UI")}
+          onClick={() =>  onError(new Error("This is an empty top right UI"))}
           style={{ height: "2.5rem" }}
         >
           Click me
@@ -373,8 +369,7 @@ export default function App({
       appState: excalidrawAPI.getAppState(),
       files: excalidrawAPI.getFiles(),
       type,
-    });
-    window.alert(`Copied to clipboard as ${type} successfully`);
+    }); 
   };
 
   const [pointerData, setPointerData] = useState<{
@@ -619,7 +614,7 @@ export default function App({
         <MainMenu.Separator />
         <MainMenu.DefaultItems.LiveCollaborationTrigger
           isCollaborating={isCollaborating}
-          onSelect={() => window.alert("You clicked on collab button")}
+          onSelect={() => onError(new Error("You clicked on collab button")}
         />
         <MainMenu.Group title="Excalidraw links">
           <MainMenu.DefaultItems.Socials />
@@ -628,7 +623,7 @@ export default function App({
         <MainMenu.ItemCustom>
           <button
             style={{ height: "2rem" }}
-            onClick={() => window.alert("custom menu item")}
+            onClick={() => onError(new Error("custom menu item")}
           >
             custom item
           </button>

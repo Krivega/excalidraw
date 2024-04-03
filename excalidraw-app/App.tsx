@@ -44,7 +44,6 @@ import {
   BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
-  LibraryItems,
   UIAppState,
 } from "../packages/excalidraw/types";
 import { ResolutionType } from "../packages/excalidraw/utility-types";
@@ -63,6 +62,7 @@ import {
   FIREBASE_STORAGE_PREFIXES,
   STORAGE_KEYS,
   SYNC_BROWSER_TABS_TIMEOUT,
+  isExcalidrawPlusSignedUser,
 } from "./app_constants";
 import Collab, {
   CollabAPI,
@@ -81,13 +81,29 @@ import {
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 import { exportToBackend, loadScene } from "./data";
 import { updateStaleImageStatuses } from "./data/FileManager";
-import { LocalData } from "./data/LocalData";
-import { storageBackend } from "./data/config";
 import {
-  getLibraryItemsFromStorage,
-  importFromLocalStorage,
-} from "./data/localStorage";
+  LibraryIndexedDBAdapter,
+  LibraryLocalStorageMigrationAdapter,
+  LocalData,
+} from "./data/LocalData";
+import { importFromLocalStorage } from "./data/localStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
+
+import {
+  CommandPalette,
+  DEFAULT_CATEGORIES,
+} from "../packages/excalidraw/components/CommandPalette/CommandPalette";
+import {
+  DiscordIcon,
+  ExcalLogo,
+  GithubIcon,
+  XBrandIcon,
+  exportToPlus,
+  share,
+  usersIcon,
+} from "../packages/excalidraw/components/icons";
+import CollabError, { collabErrorIndicatorAtom } from "./collab/CollabError";
+import { storageBackend } from "./data/config";
 import "./index.scss";
 import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
 
@@ -354,10 +370,13 @@ const ExcalidrawWrapper = ({
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return !!isCollaborationLink;
   });
+  const collabError = useAtomValue(collabErrorIndicatorAtom);
 
   useHandleLibrary({
     excalidrawAPI,
-    getInitialLibraryItems: getLibraryItemsFromStorage,
+    adapter: LibraryIndexedDBAdapter,
+    // TODO maybe remove this in several months (shipped: 24-03-11)
+    migrationAdapter: LibraryLocalStorageMigrationAdapter,
   });
 
   useEffect(() => {
@@ -475,8 +494,12 @@ const ExcalidrawWrapper = ({
           excalidrawAPI.updateScene({
             ...localDataState,
           });
-          excalidrawAPI.updateLibrary({
-            libraryItems: getLibraryItemsFromStorage(),
+          LibraryIndexedDBAdapter.load().then((data) => {
+            if (data) {
+              excalidrawAPI.updateLibrary({
+                libraryItems: data.libraryItems,
+              });
+            }
           });
           collabAPI?.setUsername(username);
         }
@@ -687,15 +710,6 @@ const ExcalidrawWrapper = ({
     );
   };
 
-  const onLibraryChange = async (items: LibraryItems) => {
-    if (!items.length) {
-      localStorage.removeItem(STORAGE_KEYS.LOCAL_STORAGE_LIBRARY);
-      return;
-    }
-    const serializedItems = JSON.stringify(items);
-    localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE_LIBRARY, serializedItems);
-  };
-
   const isOffline = useAtomValue(isOfflineAtom);
 
   const onCollabDialogOpen = useCallback(
@@ -721,6 +735,45 @@ const ExcalidrawWrapper = ({
       </div>
     );
   }
+
+  const ExcalidrawPlusCommand = {
+    label: "Excalidraw+",
+    category: DEFAULT_CATEGORIES.links,
+    predicate: true,
+    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
+    keywords: ["plus", "cloud", "server"],
+    perform: () => {
+      window.open(
+        `${
+          import.meta.env.VITE_APP_PLUS_LP
+        }/plus?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
+        "_blank",
+      );
+    },
+  };
+  const ExcalidrawPlusAppCommand = {
+    label: "Sign up",
+    category: DEFAULT_CATEGORIES.links,
+    predicate: true,
+    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
+    keywords: [
+      "excalidraw",
+      "plus",
+      "cloud",
+      "server",
+      "signin",
+      "login",
+      "signup",
+    ],
+    perform: () => {
+      window.open(
+        `${
+          import.meta.env.VITE_APP_PLUS_APP
+        }?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
+        "_blank",
+      );
+    },
+  };
 
   return (
     <div
@@ -772,7 +825,6 @@ const ExcalidrawWrapper = ({
         renderCustomStats={renderCustomStats}
         detectScroll={false}
         handleKeyboardGlobally={true}
-        onLibraryChange={onLibraryChange}
         autoFocus={true}
         theme={theme}
         renderTopRightUI={(isMobile) => {
@@ -780,12 +832,15 @@ const ExcalidrawWrapper = ({
             return null;
           }
           return (
-            <LiveCollaborationTrigger
-              isCollaborating={isCollaborating}
-              onSelect={() =>
-                setShareDialogState({ isOpen: true, type: "share" })
-              }
-            />
+            <div className="top-right-ui">
+              {collabError.message && <CollabError collabError={collabError} />}
+              <LiveCollaborationTrigger
+                isCollaborating={isCollaborating}
+                onSelect={() =>
+                  setShareDialogState({ isOpen: true, type: "share" })
+                }
+              />
+            </div>
           );
         }}
       >
@@ -921,6 +976,161 @@ const ExcalidrawWrapper = ({
             {errorMessage}
           </ErrorDialog>
         )}
+
+        <CommandPalette
+          customCommandPaletteItems={[
+            {
+              label: t("labels.liveCollaboration"),
+              category: DEFAULT_CATEGORIES.app,
+              keywords: [
+                "team",
+                "multiplayer",
+                "share",
+                "public",
+                "session",
+                "invite",
+              ],
+              icon: usersIcon,
+              perform: () => {
+                setShareDialogState({
+                  isOpen: true,
+                  type: "collaborationOnly",
+                });
+              },
+            },
+            {
+              label: t("roomDialog.button_stopSession"),
+              category: DEFAULT_CATEGORIES.app,
+              predicate: () => !!collabAPI?.isCollaborating(),
+              keywords: [
+                "stop",
+                "session",
+                "end",
+                "leave",
+                "close",
+                "exit",
+                "collaboration",
+              ],
+              perform: () => {
+                if (collabAPI) {
+                  collabAPI.stopCollaboration();
+                  if (!collabAPI.isCollaborating()) {
+                    setShareDialogState({ isOpen: false });
+                  }
+                }
+              },
+            },
+            {
+              label: t("labels.share"),
+              category: DEFAULT_CATEGORIES.app,
+              predicate: true,
+              icon: share,
+              keywords: [
+                "link",
+                "shareable",
+                "readonly",
+                "export",
+                "publish",
+                "snapshot",
+                "url",
+                "collaborate",
+                "invite",
+              ],
+              perform: async () => {
+                setShareDialogState({ isOpen: true, type: "share" });
+              },
+            },
+            {
+              label: "GitHub",
+              icon: GithubIcon,
+              category: DEFAULT_CATEGORIES.links,
+              predicate: true,
+              keywords: [
+                "issues",
+                "bugs",
+                "requests",
+                "report",
+                "features",
+                "social",
+                "community",
+              ],
+              perform: () => {
+                window.open(
+                  "https://github.com/excalidraw/excalidraw",
+                  "_blank",
+                  "noopener noreferrer",
+                );
+              },
+            },
+            {
+              label: t("labels.followUs"),
+              icon: XBrandIcon,
+              category: DEFAULT_CATEGORIES.links,
+              predicate: true,
+              keywords: ["twitter", "contact", "social", "community"],
+              perform: () => {
+                window.open(
+                  "https://x.com/excalidraw",
+                  "_blank",
+                  "noopener noreferrer",
+                );
+              },
+            },
+            {
+              label: t("labels.discordChat"),
+              category: DEFAULT_CATEGORIES.links,
+              predicate: true,
+              icon: DiscordIcon,
+              keywords: [
+                "chat",
+                "talk",
+                "contact",
+                "bugs",
+                "requests",
+                "report",
+                "feedback",
+                "suggestions",
+                "social",
+                "community",
+              ],
+              perform: () => {
+                window.open(
+                  "https://discord.gg/UexuTaE",
+                  "_blank",
+                  "noopener noreferrer",
+                );
+              },
+            },
+            ...(isExcalidrawPlusSignedUser
+              ? [
+                  {
+                    ...ExcalidrawPlusAppCommand,
+                    label: "Sign in / Go to Excalidraw+",
+                  },
+                ]
+              : [ExcalidrawPlusCommand, ExcalidrawPlusAppCommand]),
+
+            {
+              label: t("overwriteConfirm.action.excalidrawPlus.button"),
+              category: DEFAULT_CATEGORIES.export,
+              icon: exportToPlus,
+              predicate: true,
+              keywords: ["plus", "export", "save", "backup"],
+              perform: () => {
+                if (excalidrawAPI) {
+                  exportToExcalidrawPlus(
+                    excalidrawAPI.getSceneElements(),
+                    excalidrawAPI.getAppState(),
+                    excalidrawAPI.getFiles(),
+                    excalidrawAPI.getName(),
+                    HTTP_STORAGE_BACKEND_URL,
+                  );
+                }
+              },
+            },
+            CommandPalette.defaultItems.toggleTheme,
+          ]}
+        />
       </Excalidraw>
     </div>
   );

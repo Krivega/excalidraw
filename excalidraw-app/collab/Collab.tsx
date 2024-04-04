@@ -433,7 +433,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       return JSON.parse(decodedData);
     } catch (error) {
       this.onError(new Error(t("alerts.decryptFailed")));
-      console.error(error);
       return {
         type: WS_SUBTYPES.INVALID_RESPONSE,
       };
@@ -536,10 +535,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
     // fallback in case you're not alone in the room but still don't receive
     // initial SCENE_INIT message
-    this.socketInitializationTimer = window.setTimeout(
-      fallbackInitializationHandler,
-      INITIAL_SCENE_UPDATE_TIMEOUT,
-    );
+    this.socketInitializationTimer = window.setTimeout(() => {
+      fallbackInitializationHandler(
+        new Error(
+          "fallback in case you're not alone in the room but still don't receive",
+        ),
+      );
+    }, INITIAL_SCENE_UPDATE_TIMEOUT);
 
     // All socket listeners are moving to Portal
     this.portal.socket.on(

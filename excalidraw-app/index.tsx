@@ -20,11 +20,19 @@ const HTTP_STORAGE_BACKEND_URL = import.meta.env
 root.render(
   <StrictMode>
     <App
+      isCollaborating
       username={username}
-      BACKEND_V2_POST={BACKEND_V2_POST}
-      BACKEND_V2_GET={BACKEND_V2_GET}
-      HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}
-      onError={console.error}
+      roomId={"1111"}
+      roomKey={"roomKey"}
+      token={"sessionId"}
+      wsServerUrl={"ws://localhost:3000"}
+      wsServerPath={"/"}
+      BACKEND_V2_POST={"/"}
+      BACKEND_V2_GET={"/"}
+      HTTP_STORAGE_BACKEND_URL={"http://localhost:3000"}
+      onError={(error: Error) => {
+        console.log("🚀 temp  ~ error:", error);
+      }}
     />
   </StrictMode>,
 );

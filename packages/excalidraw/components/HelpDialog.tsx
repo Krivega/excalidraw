@@ -1,13 +1,13 @@
 import React from "react";
-import { t } from "../i18n";
-import { KEYS } from "../keys";
-import { Dialog } from "./Dialog";
-import { getShortcutKey } from "../utils";
-import "./HelpDialog.scss";
-import { ExternalLinkIcon } from "./icons";
+import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { probablySupportsClipboardBlob } from "../clipboard";
 import { isDarwin, isFirefox, isWindows } from "../constants";
-import { getShortcutFromShortcutName } from "../actions/shortcuts";
+import { t } from "../i18n";
+import { KEYS } from "../keys";
+import { getShortcutKey } from "../utils";
+import { Dialog } from "./Dialog";
+import "./HelpDialog.scss";
+import { ExternalLinkIcon } from "./icons";
 
 const Header = () => (
   <div className="HelpDialog__header">
@@ -121,7 +121,7 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
         title={t("helpDialog.title")}
         className={"HelpDialog"}
       >
-        <Header />
+        {/* <Header /> */}
         <Section title={t("helpDialog.shortcuts")}>
           <ShortcutIsland
             className="HelpDialog__island--tools"

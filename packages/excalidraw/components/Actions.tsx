@@ -1,5 +1,13 @@
+import clsx from "clsx";
 import { useState } from "react";
+import { actionToggleZenMode } from "../actions";
 import { ActionManager } from "../actions/manager";
+import { trackEvent } from "../analytics";
+import {
+  shouldAllowVerticalAlign,
+  suppportsHorizontalAlign,
+} from "../element/textElement";
+import { hasBoundTextElement, isTextElement } from "../element/typeChecks";
 import {
   ExcalidrawElement,
   ExcalidrawElementType,
@@ -7,7 +15,6 @@ import {
   NonDeletedSceneElementsMap,
 } from "../element/types";
 import { t } from "../i18n";
-import { useDevice } from "./App";
 import {
   canChangeRoundness,
   canHaveArrowheads,
@@ -16,35 +23,25 @@ import {
   hasStrokeStyle,
   hasStrokeWidth,
 } from "../scene";
+import { hasStrokeColor } from "../scene/comparisons";
 import { SHAPES } from "../shapes";
 import { AppClassProperties, AppProps, UIAppState, Zoom } from "../types";
 import { capitalizeString, isTransparent } from "../utils";
+import { useDevice } from "./App";
 import Stack from "./Stack";
 import { ToolButton } from "./ToolButton";
-import { hasStrokeColor } from "../scene/comparisons";
-import { trackEvent } from "../analytics";
-import { hasBoundTextElement, isTextElement } from "../element/typeChecks";
-import clsx from "clsx";
-import { actionToggleZenMode } from "../actions";
 import { Tooltip } from "./Tooltip";
-import {
-  shouldAllowVerticalAlign,
-  suppportsHorizontalAlign,
-} from "../element/textElement";
 
+import { useTunnels } from "../context/tunnels";
+import { KEYS } from "../keys";
 import "./Actions.scss";
 import DropdownMenu from "./dropdownMenu/DropdownMenu";
 import {
   EmbedIcon,
   extraToolsIcon,
   frameToolIcon,
-  mermaidLogoIcon,
   laserPointerToolIcon,
-  OpenAIIcon,
-  MagicIcon,
 } from "./icons";
-import { KEYS } from "../keys";
-import { useTunnels } from "../context/tunnels";
 
 export const canChangeStrokeColor = (
   appState: UIAppState,
@@ -374,11 +371,11 @@ export const ShapesSwitcher = ({
           >
             {t("toolBar.laser")}
           </DropdownMenu.Item>
-          <div style={{ margin: "6px 0", fontSize: 14, fontWeight: 600 }}>
+          {/* <div style={{ margin: "6px 0", fontSize: 14, fontWeight: 600 }}>
             Generate
           </div>
-          {app.props.aiEnabled !== false && <TTDDialogTriggerTunnel.Out />}
-          <DropdownMenu.Item
+          {app.props.aiEnabled !== false && <TTDDialogTriggerTunnel.Out />} */}
+          {/* <DropdownMenu.Item
             onSelect={() => app.setOpenDialog({ name: "ttd", tab: "mermaid" })}
             icon={mermaidLogoIcon}
             data-testid="toolbar-embeddable"
@@ -410,7 +407,7 @@ export const ShapesSwitcher = ({
                 {t("toolBar.magicSettings")}
               </DropdownMenu.Item>
             </>
-          )}
+          )} */}
         </DropdownMenu.Content>
       </DropdownMenu>
     </>

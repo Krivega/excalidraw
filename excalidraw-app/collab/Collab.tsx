@@ -557,6 +557,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           this.portal.roomKey,
         );
 
+        console.log(
+          "🚀 temp  ~ Collab ~ 'client-broadcast' decryptedData.type:",
+          decryptedData.type,
+        );
         switch (decryptedData.type) {
           case WS_SUBTYPES.INVALID_RESPONSE:
             return;
@@ -650,10 +654,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       },
     );
 
-    this.portal.socket.on("first-in-room", async () => {
-      if (this.portal.socket) {
-        this.portal.socket.off("first-in-room");
-      }
+    this.portal.socket.once("first-in-room", async () => {
+      console.log(
+        '🚀 temp  ~ Collab ~ this.portal.socket.once ~ first-in-room":',
+      );
+
       const sceneData = await this.initializeRoom({
         fetchScene: true,
         roomLinkData: existingRoomLinkData,
@@ -691,6 +696,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         } | null;
       }
     | { fetchScene: false; roomLinkData?: null }) => {
+    console.log("initializeRoom", fetchScene, roomLinkData);
     clearTimeout(this.socketInitializationTimer!);
     if (this.portal.socket && this.fallbackInitializationHandler) {
       this.portal.socket.off(

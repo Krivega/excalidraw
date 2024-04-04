@@ -755,8 +755,6 @@ const ExcalidrawWrapper = ({
     },
   };
 
-  console.log("🚀 temp  ~ excalidrawAPI:", excalidrawAPI);
-
   return (
     <div
       style={{ height: "100%" }}

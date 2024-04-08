@@ -269,7 +269,7 @@ export default function App({
           />
         )}
         <button
-          onClick={() =>  onError(new Error("This is an empty top right UI"))}
+          onClick={() => onError(new Error("This is an empty top right UI"))}
           style={{ height: "2.5rem" }}
         >
           Click me
@@ -369,7 +369,7 @@ export default function App({
       appState: excalidrawAPI.getAppState(),
       files: excalidrawAPI.getFiles(),
       type,
-    }); 
+    });
   };
 
   const [pointerData, setPointerData] = useState<{
@@ -614,7 +614,9 @@ export default function App({
         <MainMenu.Separator />
         <MainMenu.DefaultItems.LiveCollaborationTrigger
           isCollaborating={isCollaborating}
-          onSelect={() => onError(new Error("You clicked on collab button")}
+          onSelect={() => {
+            onError(new Error("You clicked on collab button"));
+          }}
         />
         <MainMenu.Group title="Excalidraw links">
           <MainMenu.DefaultItems.Socials />
@@ -623,7 +625,7 @@ export default function App({
         <MainMenu.ItemCustom>
           <button
             style={{ height: "2rem" }}
-            onClick={() => onError(new Error("custom menu item")}
+            onClick={() => onError(new Error("custom menu item"))}
           >
             custom item
           </button>

@@ -4,9 +4,11 @@ import { Provider, atom, useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "../packages/excalidraw/analytics";
 import { getDefaultAppState } from "../packages/excalidraw/appState";
+import { DEFAULT_CATEGORIES } from "../packages/excalidraw/components/CommandPalette/CommandPalette";
 import { ErrorDialog } from "../packages/excalidraw/components/ErrorDialog";
 import { openConfirmModal } from "../packages/excalidraw/components/OverwriteConfirm/OverwriteConfirmState";
 import Trans from "../packages/excalidraw/components/Trans";
+import { ExcalLogo } from "../packages/excalidraw/components/icons";
 import {
   EVENT,
   THEME,
@@ -15,15 +17,19 @@ import {
 import { loadFromBlob } from "../packages/excalidraw/data/blob";
 import { useHandleLibrary } from "../packages/excalidraw/data/library";
 import {
+  RemoteExcalidrawElement,
+  reconcileElements,
+} from "../packages/excalidraw/data/reconcile";
+import {
   RestoredDataState,
   restoreAppState,
 } from "../packages/excalidraw/data/restore";
 import { newElementWith } from "../packages/excalidraw/element/mutateElement";
 import { isInitializedImageElement } from "../packages/excalidraw/element/typeChecks";
 import {
-  ExcalidrawElement,
   FileId,
   NonDeletedExcalidrawElement,
+  OrderedExcalidrawElement,
   Theme,
 } from "../packages/excalidraw/element/types";
 import { useCallbackRefState } from "../packages/excalidraw/hooks/useCallbackRefState";
@@ -61,7 +67,7 @@ import Collab, {
   isCollaboratingAtom,
   isOfflineAtom,
 } from "./collab/Collab";
-import { reconcileElements } from "./collab/reconciliation";
+import { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 import { exportToBackend, loadScene } from "./data";
 import { updateStaleImageStatuses } from "./data/FileManager";
@@ -70,13 +76,9 @@ import {
   LibraryLocalStorageMigrationAdapter,
   LocalData,
 } from "./data/LocalData";
+import { storageBackend } from "./data/config";
 import { importFromLocalStorage } from "./data/localStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
-
-import { DEFAULT_CATEGORIES } from "../packages/excalidraw/components/CommandPalette/CommandPalette";
-import { ExcalLogo } from "../packages/excalidraw/components/icons";
-import { collabErrorIndicatorAtom } from "./collab/CollabError";
-import { storageBackend } from "./data/config";
 import "./index.scss";
 import { shareDialogStateAtom } from "./share/ShareDialog";
 
@@ -252,7 +254,7 @@ const initializeScene = async (opts: {
         },
         elements: reconcileElements(
           scene?.elements || [],
-          excalidrawAPI.getSceneElementsIncludingDeleted(),
+          excalidrawAPI.getSceneElementsIncludingDeleted() as RemoteExcalidrawElement[],
           excalidrawAPI.getAppState(),
         ),
       },
@@ -588,7 +590,7 @@ const ExcalidrawWrapper = ({
   }, [theme]);
 
   const onChange = (
-    elements: readonly ExcalidrawElement[],
+    elements: readonly OrderedExcalidrawElement[],
     appState: AppState,
     files: BinaryFiles,
   ) => {

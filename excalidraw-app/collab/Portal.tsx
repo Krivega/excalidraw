@@ -1,10 +1,9 @@
 import throttle from "lodash.throttle";
 import type { Socket } from "socket.io-client";
 import { trackEvent } from "../../packages/excalidraw/analytics";
-import { PRECEDING_ELEMENT_KEY } from "../../packages/excalidraw/constants";
 import { encryptData } from "../../packages/excalidraw/data/encryption";
 import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
-import { ExcalidrawElement } from "../../packages/excalidraw/element/types";
+import { OrderedExcalidrawElement } from "../../packages/excalidraw/element/types";
 import {
   OnUserFollowedPayload,
   SocketId,
@@ -12,12 +11,12 @@ import {
 } from "../../packages/excalidraw/types";
 import { FILE_UPLOAD_TIMEOUT, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
 import {
+  isSyncableElement,
   SocketUpdateData,
   SocketUpdateDataSource,
-  isSyncableElement,
+  SyncableExcalidrawElement,
 } from "../data";
 import { TCollabClass } from "./Collab";
-import { BroadcastedExcalidrawElement } from "./reconciliation";
 
 class Portal {
   collab: TCollabClass;
@@ -135,7 +134,7 @@ class Portal {
 
   broadcastScene = async (
     updateType: WS_SUBTYPES.INIT | WS_SUBTYPES.UPDATE,
-    allElements: readonly ExcalidrawElement[],
+    elements: readonly OrderedExcalidrawElement[],
     syncAll: boolean,
   ) => {
     if (updateType === WS_SUBTYPES.INIT && !syncAll) {
@@ -145,25 +144,17 @@ class Portal {
     // sync out only the elements we think we need to to save bandwidth.
     // periodically we'll resync the whole thing to make sure no one diverges
     // due to a dropped message (server goes down etc).
-    const syncableElements = allElements.reduce(
-      (acc, element: BroadcastedExcalidrawElement, idx, elements) => {
-        if (
-          (syncAll ||
-            !this.broadcastedElementVersions.has(element.id) ||
-            element.version >
-              this.broadcastedElementVersions.get(element.id)!) &&
-          isSyncableElement(element)
-        ) {
-          acc.push({
-            ...element,
-            // z-index info for the reconciler
-            [PRECEDING_ELEMENT_KEY]: idx === 0 ? "^" : elements[idx - 1]?.id,
-          });
-        }
-        return acc;
-      },
-      [] as BroadcastedExcalidrawElement[],
-    );
+    const syncableElements = elements.reduce((acc, element) => {
+      if (
+        (syncAll ||
+          !this.broadcastedElementVersions.has(element.id) ||
+          element.version > this.broadcastedElementVersions.get(element.id)!) &&
+        isSyncableElement(element)
+      ) {
+        acc.push(element);
+      }
+      return acc;
+    }, [] as SyncableExcalidrawElement[]);
 
     const data: SocketUpdateDataSource[typeof updateType] = {
       type: updateType,

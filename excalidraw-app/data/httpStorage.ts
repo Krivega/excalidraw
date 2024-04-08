@@ -23,7 +23,6 @@ import {
   DataURL,
 } from "../../packages/excalidraw/types";
 import Portal from "../collab/Portal";
-import { reconcileElements } from "../collab/reconciliation";
 import getHeaders from "./getHeaders";
 import { StoredScene } from "./StorageBackend";
 
@@ -60,7 +59,7 @@ export const saveToHttpStorage = async ({
   appState: AppState;
   HTTP_STORAGE_BACKEND_URL: string;
   token?: string;
-}) => {
+}): Promise<SyncableExcalidrawElement[] | null> => {
   const { roomId, roomKey, socket } = portal;
   if (
     // if no room exists, consider the room saved because there's nothing we can
@@ -70,7 +69,7 @@ export const saveToHttpStorage = async ({
     !socket ||
     isSavedToHttpStorage(portal, elements)
   ) {
-    return false;
+    return null;
   }
 
   const sceneVersion = getSceneVersion(elements);
@@ -81,7 +80,7 @@ export const saveToHttpStorage = async ({
   );
 
   if (!getResponse.ok && getResponse.status !== 404) {
-    return false;
+    return null;
   }
   if (getResponse.status === 404) {
     const result: boolean = await saveElementsToBackend({
@@ -93,23 +92,23 @@ export const saveToHttpStorage = async ({
       token,
     });
     if (result) {
-      return {
-        reconciledElements: null,
-      };
+      return [];
     }
-    return false;
+    return null;
   }
   // If room already exist, we compare scene versions to check
   // if we're up to date before saving our scene
   const buffer = await getResponse.arrayBuffer();
   const sceneVersionFromRequest = parseSceneVersionFromRequest(buffer);
+
   if (sceneVersionFromRequest >= sceneVersion) {
-    return false;
+    return null;
   }
 
   const existingElements = await getElementsFromBuffer(buffer, roomKey);
+
   const reconciledElements = getSyncableElements(
-    reconcileElements(elements, existingElements, appState),
+    restoreElements(existingElements, null),
   );
 
   const result: boolean = await saveElementsToBackend({
@@ -123,11 +122,11 @@ export const saveToHttpStorage = async ({
 
   if (result) {
     httpStorageSceneVersionCache.set(socket, sceneVersion);
-    return {
-      reconciledElements: elements,
-    };
+
+    return reconciledElements;
   }
-  return false;
+
+  return null;
 };
 
 export const loadFromHttpStorage = async ({
@@ -142,7 +141,7 @@ export const loadFromHttpStorage = async ({
   socket: ISocketIO | null;
   HTTP_STORAGE_BACKEND_URL: string;
   token?: string;
-}): Promise<readonly ExcalidrawElement[] | null> => {
+}): Promise<readonly SyncableExcalidrawElement[] | null> => {
   const headers = getHeaders({ token });
   const getResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
@@ -150,13 +149,17 @@ export const loadFromHttpStorage = async ({
   );
 
   const buffer = await getResponse.arrayBuffer();
-  const elements = await getElementsFromBuffer(buffer, roomKey);
+  const elementsFromBuffer = await getElementsFromBuffer(buffer, roomKey);
+
+  const elements = getSyncableElements(
+    restoreElements(elementsFromBuffer, null),
+  );
 
   if (socket) {
     httpStorageSceneVersionCache.set(socket, getSceneVersion(elements));
   }
 
-  return restoreElements(elements, null);
+  return elements;
 };
 
 const getElementsFromBuffer = async (

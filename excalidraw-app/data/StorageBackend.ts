@@ -15,7 +15,7 @@ export interface StorageBackend {
     appState: AppState;
     HTTP_STORAGE_BACKEND_URL: string;
     token?: string;
-  }) => Promise<false | { reconciledElements: any }>;
+  }) => Promise<SyncableExcalidrawElement[] | null>;
   loadFromStorageBackend: (parameters: {
     roomId: string;
     roomKey: string;

@@ -9,11 +9,7 @@ import { ErrorDialog } from "../packages/excalidraw/components/ErrorDialog";
 import { openConfirmModal } from "../packages/excalidraw/components/OverwriteConfirm/OverwriteConfirmState";
 import Trans from "../packages/excalidraw/components/Trans";
 import { ExcalLogo } from "../packages/excalidraw/components/icons";
-import {
-  EVENT,
-  THEME,
-  VERSION_TIMEOUT,
-} from "../packages/excalidraw/constants";
+import { EVENT, VERSION_TIMEOUT } from "../packages/excalidraw/constants";
 import { loadFromBlob } from "../packages/excalidraw/data/blob";
 import { useHandleLibrary } from "../packages/excalidraw/data/library";
 import {
@@ -30,7 +26,6 @@ import {
   FileId,
   NonDeletedExcalidrawElement,
   OrderedExcalidrawElement,
-  Theme,
 } from "../packages/excalidraw/element/types";
 import { useCallbackRefState } from "../packages/excalidraw/hooks/useCallbackRefState";
 import { t } from "../packages/excalidraw/i18n";
@@ -81,6 +76,7 @@ import { importFromLocalStorage } from "./data/localStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
 import "./index.scss";
 import { shareDialogStateAtom } from "./share/ShareDialog";
+import { appThemeAtom, useHandleAppTheme } from "./useHandleAppTheme";
 
 polyfill();
 
@@ -318,6 +314,9 @@ const ExcalidrawWrapper = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [langCode, setLangCode] = useAtom(appLangCodeAtom);
   const isCollabDisabled = isRunningInIframe();
+
+  const [appTheme, setAppTheme] = useAtom(appThemeAtom);
+  const { editorTheme } = useHandleAppTheme();
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -572,23 +571,6 @@ const ExcalidrawWrapper = ({
     languageDetector.cacheUserLanguage(langCode);
   }, [langCode]);
 
-  const [theme, setTheme] = useState<Theme>(
-    () =>
-      (localStorage.getItem(
-        STORAGE_KEYS.LOCAL_STORAGE_THEME,
-      ) as Theme | null) ||
-      // FIXME migration from old LS scheme. Can be removed later. #5660
-      importFromLocalStorage().appState?.theme ||
-      THEME.LIGHT,
-  );
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE_THEME, theme);
-    // currently only used for body styling during init (see public/index.html),
-    // but may change in the future
-    document.documentElement.classList.toggle("dark", theme === THEME.DARK);
-  }, [theme]);
-
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
     appState: AppState,
@@ -597,8 +579,6 @@ const ExcalidrawWrapper = ({
     if (collabAPI?.isCollaborating()) {
       collabAPI.syncElements(elements);
     }
-
-    setTheme(appState.theme);
 
     // this check is redundant, but since this is a hot path, it's best
     // not to evaludate the nested expression every time
@@ -809,7 +789,7 @@ const ExcalidrawWrapper = ({
         detectScroll={false}
         handleKeyboardGlobally={true}
         autoFocus={true}
-        theme={theme}
+        theme={editorTheme}
         renderTopRightUI={(isMobile) => {
           return null;
           // if (isMobile || !collabAPI || isCollabDisabled) {
@@ -832,6 +812,8 @@ const ExcalidrawWrapper = ({
           onCollabDialogOpen={onCollabDialogOpen}
           isCollaborating={isCollaborating}
           isCollabEnabled={!isCollabDisabled}
+          theme={appTheme}
+          setTheme={(theme) => setAppTheme(theme)}
         /> */}
         {/* <AppWelcomeScreen
           onCollabDialogOpen={onCollabDialogOpen}
@@ -1113,7 +1095,14 @@ const ExcalidrawWrapper = ({
                 }
               },
             },
-            CommandPalette.defaultItems.toggleTheme,
+            {
+              ...CommandPalette.defaultItems.toggleTheme,
+              perform: () => {
+                setAppTheme(
+                  editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK,
+                );
+              },
+            },
           ]}
         /> */}
       </Excalidraw>

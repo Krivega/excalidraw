@@ -1,9 +1,16 @@
-import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
 import { LinearElementEditor } from "../element/linearElementEditor";
 import { isLinearElement } from "../element/typeChecks";
 import { ExcalidrawLinearElement } from "../element/types";
 import { register } from "./register";
 
+const DEFAULT_CATEGORIES = {
+  app: "App",
+  export: "Export",
+  tools: "Tools",
+  editor: "Editor",
+  elements: "Elements",
+  links: "Links",
+};
 export const actionToggleLinearEditor = register({
   name: "toggleLinearEditor",
   category: DEFAULT_CATEGORIES.elements,

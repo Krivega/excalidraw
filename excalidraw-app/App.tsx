@@ -2,6 +2,7 @@ import clsx from "clsx";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { Provider, atom, useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { StoreAction } from "../packages/excalidraw";
 import { trackEvent } from "../packages/excalidraw/analytics";
 import { getDefaultAppState } from "../packages/excalidraw/appState";
 import { DEFAULT_CATEGORIES } from "../packages/excalidraw/components/CommandPalette/CommandPalette";
@@ -473,6 +474,7 @@ const ExcalidrawWrapper = ({
           setLangCode(langCode);
           excalidrawAPI.updateScene({
             ...localDataState,
+            storeAction: StoreAction.UPDATE,
           });
           LibraryIndexedDBAdapter.load().then((data) => {
             if (data) {
@@ -605,6 +607,7 @@ const ExcalidrawWrapper = ({
           if (didChange) {
             excalidrawAPI.updateScene({
               elements,
+              storeAction: StoreAction.UPDATE,
             });
           }
         }
@@ -1063,6 +1066,20 @@ const ExcalidrawWrapper = ({
               perform: () => {
                 window.open(
                   "https://discord.gg/UexuTaE",
+                  "_blank",
+                  "noopener noreferrer",
+                );
+              },
+            },
+            {
+              label: "YouTube",
+              icon: youtubeIcon,
+              category: DEFAULT_CATEGORIES.links,
+              predicate: true,
+              keywords: ["features", "tutorials", "howto", "help", "community"],
+              perform: () => {
+                window.open(
+                  "https://youtube.com/@excalidraw",
                   "_blank",
                   "noopener noreferrer",
                 );

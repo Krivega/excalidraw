@@ -1,5 +1,6 @@
 import throttle from "lodash.throttle";
 import type { Socket } from "socket.io-client";
+import { StoreAction } from "../../packages/excalidraw";
 import { trackEvent } from "../../packages/excalidraw/analytics";
 import { encryptData } from "../../packages/excalidraw/data/encryption";
 import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
@@ -11,10 +12,10 @@ import {
 } from "../../packages/excalidraw/types";
 import { FILE_UPLOAD_TIMEOUT, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
 import {
-  isSyncableElement,
   SocketUpdateData,
   SocketUpdateDataSource,
   SyncableExcalidrawElement,
+  isSyncableElement,
 } from "../data";
 import { TCollabClass } from "./Collab";
 
@@ -129,6 +130,7 @@ class Portal {
           }
           return element;
         }),
+      storeAction: StoreAction.UPDATE,
     });
   }, FILE_UPLOAD_TIMEOUT);
 

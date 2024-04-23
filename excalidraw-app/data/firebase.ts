@@ -1,15 +1,13 @@
 import type { Socket } from "socket.io-client";
 import { SyncableExcalidrawElement, getSyncableElements } from ".";
+import { reconcileElements } from "../../packages/excalidraw";
 import { MIME_TYPES } from "../../packages/excalidraw/constants";
 import { decompressData } from "../../packages/excalidraw/data/encode";
 import {
   decryptData,
   encryptData,
 } from "../../packages/excalidraw/data/encryption";
-import {
-  RemoteExcalidrawElement,
-  reconcileElements,
-} from "../../packages/excalidraw/data/reconcile";
+import type { RemoteExcalidrawElement } from "../../packages/excalidraw/data/reconcile";
 import { restoreElements } from "../../packages/excalidraw/data/restore";
 import { getSceneVersion } from "../../packages/excalidraw/element";
 import {

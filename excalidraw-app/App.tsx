@@ -72,7 +72,7 @@ import {
   LibraryLocalStorageMigrationAdapter,
   LocalData,
 } from "./data/LocalData";
-import { storageBackend } from "./data/config";
+import { getStorageBackend, storageBackend } from "./data/config";
 import { importFromLocalStorage } from "./data/localStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
 import "./index.scss";
@@ -452,6 +452,8 @@ const ExcalidrawWrapper = ({
       BACKEND_V2_GET,
       onError,
     }).then(async (data) => {
+      // Init storageBackend before use it
+      await getStorageBackend();
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);
     });
@@ -573,45 +575,66 @@ const ExcalidrawWrapper = ({
     languageDetector.cacheUserLanguage(langCode);
   }, [langCode]);
 
+  const updateScene = () => {
+    if (excalidrawAPI) {
+      let didChange = false;
+
+      const localElements = excalidrawAPI
+        .getSceneElementsIncludingDeleted()
+        .map((element) => {
+          if (LocalData.fileStorage.shouldUpdateImageElementStatus(element)) {
+            const newElement = newElementWith(element, { status: "saved" });
+            if (newElement !== element) {
+              didChange = true;
+            }
+            return newElement;
+          }
+          return element;
+        });
+
+      if (didChange) {
+        excalidrawAPI.updateScene({
+          elements: localElements,
+          storeAction: StoreAction.UPDATE,
+        });
+      }
+    }
+  };
+
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
     appState: AppState,
     files: BinaryFiles,
   ) => {
-    if (collabAPI?.isCollaborating()) {
-      collabAPI.syncElements(elements);
+    const isCollaborating = collabAPI?.isCollaborating();
+
+    if (isCollaborating) {
+      collabAPI?.syncElements(elements);
     }
 
     // this check is redundant, but since this is a hot path, it's best
     // not to evaludate the nested expression every time
     if (!LocalData.isSavePaused()) {
-      LocalData.save(elements, appState, files, () => {
-        if (excalidrawAPI) {
-          let didChange = false;
+      LocalData.save(elements, appState, files, updateScene);
+    } else if (isCollaborating) {
+      updateScene();
+    }
+  };
 
-          const elements = excalidrawAPI
-            .getSceneElementsIncludingDeleted()
-            .map((element) => {
-              if (
-                LocalData.fileStorage.shouldUpdateImageElementStatus(element)
-              ) {
-                const newElement = newElementWith(element, { status: "saved" });
-                if (newElement !== element) {
-                  didChange = true;
-                }
-                return newElement;
-              }
-              return element;
-            });
+  const onUnload = async (
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+    files: BinaryFiles,
+  ) => {
+    const isCollaborating = collabAPI?.isCollaborating();
+    if (isCollaborating) {
+      await collabAPI?.syncElements(elements, { fireImmediately: true });
+    }
 
-          if (didChange) {
-            excalidrawAPI.updateScene({
-              elements,
-              storeAction: StoreAction.UPDATE,
-            });
-          }
-        }
-      });
+    // this check is redundant, but since this is a hot path, it's best
+    // not to evaludate the nested expression every time
+    if (!LocalData.isSavePaused()) {
+      LocalData.save(elements, appState, files, () => {});
     }
   };
 
@@ -750,6 +773,7 @@ const ExcalidrawWrapper = ({
       <Excalidraw
         excalidrawAPI={excalidrawRefCallback}
         onChange={onChange}
+        onUnload={onUnload}
         initialData={initialStatePromiseRef.current.promise}
         isCollaborating={isCollaborating}
         onPointerUpdate={collabAPI?.onPointerUpdate}

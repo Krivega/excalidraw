@@ -1,46 +1,46 @@
 import React from "react";
+import { Point as RoughPoint } from "roughjs/bin/geometry";
+import { Action } from "./actions/types";
+import { Spreadsheet } from "./charts";
+import { ClipboardData } from "./clipboard";
+import type App from "./components/App";
+import { ContextMenuItems } from "./components/ContextMenu";
+import type { IMAGE_MIME_TYPES, MIME_TYPES } from "./constants";
+import type { FileSystemHandle } from "./data/filesystem";
+import Library from "./data/library";
+import { ImportedDataState } from "./data/types";
+import { SuggestedBinding } from "./element/binding";
+import { LinearElementEditor } from "./element/linearElementEditor";
+import { MaybeTransformHandleType } from "./element/transformHandles";
 import {
-  PointerType,
-  ExcalidrawLinearElement,
-  NonDeletedExcalidrawElement,
-  NonDeleted,
-  TextAlign,
-  ExcalidrawElement,
-  GroupId,
-  ExcalidrawBindableElement,
   Arrowhead,
   ChartType,
-  FontFamilyValues,
-  FileId,
-  ExcalidrawImageElement,
-  Theme,
-  StrokeRoundness,
-  ExcalidrawEmbeddableElement,
-  ExcalidrawMagicFrameElement,
-  ExcalidrawFrameLikeElement,
+  ExcalidrawBindableElement,
+  ExcalidrawElement,
   ExcalidrawElementType,
+  ExcalidrawEmbeddableElement,
+  ExcalidrawFrameLikeElement,
   ExcalidrawIframeLikeElement,
+  ExcalidrawImageElement,
+  ExcalidrawLinearElement,
+  ExcalidrawMagicFrameElement,
+  FileId,
+  FontFamilyValues,
+  GroupId,
+  NonDeleted,
+  NonDeletedExcalidrawElement,
   OrderedExcalidrawElement,
+  PointerType,
+  StrokeRoundness,
+  TextAlign,
+  Theme,
 } from "./element/types";
-import { Action } from "./actions/types";
-import { Point as RoughPoint } from "roughjs/bin/geometry";
-import { LinearElementEditor } from "./element/linearElementEditor";
-import { SuggestedBinding } from "./element/binding";
-import { ImportedDataState } from "./data/types";
-import type App from "./components/App";
-import type { throttleRAF } from "./utils";
-import { Spreadsheet } from "./charts";
 import { Language } from "./i18n";
-import { ClipboardData } from "./clipboard";
 import { isOverScrollBars } from "./scene/scrollbars";
-import { MaybeTransformHandleType } from "./element/transformHandles";
-import Library from "./data/library";
-import type { FileSystemHandle } from "./data/filesystem";
-import type { IMAGE_MIME_TYPES, MIME_TYPES } from "./constants";
-import { ContextMenuItems } from "./components/ContextMenu";
 import { SnapLine } from "./snapping";
-import { Merge, MaybePromise, ValueOf } from "./utility-types";
 import { StoreActionType } from "./store";
+import { MaybePromise, Merge, ValueOf } from "./utility-types";
+import type { throttleRAF } from "./utils";
 
 export type Point = Readonly<RoughPoint>;
 
@@ -439,6 +439,11 @@ export interface ExcalidrawProps {
     appState: AppState,
     files: BinaryFiles,
   ) => void;
+  onUnload?: (
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+    files: BinaryFiles,
+  ) => Promise<void>;
   initialData?: MaybePromise<ExcalidrawInitialDataState | null>;
   excalidrawAPI?: (api: ExcalidrawImperativeAPI) => void;
   isCollaborating?: boolean;
@@ -703,6 +708,13 @@ export interface ExcalidrawImperativeAPI {
    */
   updateFrameRendering: InstanceType<typeof App>["updateFrameRendering"];
   onChange: (
+    callback: (
+      elements: readonly ExcalidrawElement[],
+      appState: AppState,
+      files: BinaryFiles,
+    ) => void,
+  ) => UnsubscribeCallback;
+  onUnload: (
     callback: (
       elements: readonly ExcalidrawElement[],
       appState: AppState,

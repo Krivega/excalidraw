@@ -1,6 +1,6 @@
 {
   "name": "@krivega/excalidraw-app",
-  "version": "2.0.3",
+  "version": "2.0.26",
   "homepage": ".",
   "type": "module",
   "exports": {
@@ -64,6 +64,7 @@
     "build:lib": "vite build --config vite.config.lib.mts",
     "build:version": "node ../scripts/build-version.js",
     "build": "yarn build:app && yarn build:version",
+    "release": "rm -rf dist && yarn build:lib && npm publish",
     "start": "yarn && vite",
     "start:production": "npm run build && npx http-server build -a localhost -p 5001 -o",
     "build:preview": "yarn build && vite preview --port 5000"

@@ -1,28 +1,29 @@
 import React, { useEffect } from "react";
-import { InitializeApp } from "./components/InitializeApp";
 import App from "./components/App";
+import { InitializeApp } from "./components/InitializeApp";
 import { isShallowEqual } from "./utils";
 
+import "../../public/fonts/fonts.css";
 import "./css/app.scss";
 import "./css/styles.scss";
-import "../../public/fonts/fonts.css";
 import polyfill from "./polyfill";
 
-import { AppProps, ExcalidrawProps } from "./types";
-import { defaultLang } from "./i18n";
-import { DEFAULT_UI_OPTIONS } from "./constants";
 import { Provider } from "jotai";
-import { jotaiScope, jotaiStore } from "./jotai";
 import Footer from "./components/footer/FooterCenter";
+import LiveCollaborationTrigger from "./components/live-collaboration/LiveCollaborationTrigger";
 import MainMenu from "./components/main-menu/MainMenu";
 import WelcomeScreen from "./components/welcome-screen/WelcomeScreen";
-import LiveCollaborationTrigger from "./components/live-collaboration/LiveCollaborationTrigger";
+import { DEFAULT_UI_OPTIONS } from "./constants";
+import { defaultLang } from "./i18n";
+import { jotaiScope, jotaiStore } from "./jotai";
+import { AppProps, ExcalidrawProps } from "./types";
 
 polyfill();
 
 const ExcalidrawBase = (props: ExcalidrawProps) => {
   const {
     onChange,
+    onUnload,
     initialData,
     excalidrawAPI,
     isCollaborating = false,
@@ -110,6 +111,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
       <InitializeApp langCode={langCode} theme={theme}>
         <App
           onChange={onChange}
+          onUnload={onUnload}
           initialData={initialData}
           excalidrawAPI={excalidrawAPI}
           isCollaborating={isCollaborating}
@@ -206,51 +208,51 @@ export const Excalidraw = React.memo(ExcalidrawBase, areEqual);
 Excalidraw.displayName = "Excalidraw";
 
 export {
-  getSceneVersion,
-  hashElementsVersion,
-  hashString,
-  isInvisiblySmallElement,
-  getNonDeletedElements,
-} from "./element";
-export { defaultLang, useI18n, languages } from "./i18n";
-export {
   restore,
   restoreAppState,
   restoreElements,
   restoreLibraryItems,
 } from "./data/restore";
+export {
+  getNonDeletedElements,
+  getSceneVersion,
+  hashElementsVersion,
+  hashString,
+  isInvisiblySmallElement,
+} from "./element";
+export { defaultLang, languages, useI18n } from "./i18n";
 
 export { reconcileElements } from "./data/reconcile";
 
 export {
-  exportToCanvas,
   exportToBlob,
-  exportToSvg,
+  exportToCanvas,
   exportToClipboard,
+  exportToSvg,
 } from "../utils/export";
 
-export { serializeAsJSON, serializeLibraryAsJSON } from "./data/json";
 export {
   loadFromBlob,
-  loadSceneOrLibraryFromBlob,
   loadLibraryFromBlob,
+  loadSceneOrLibraryFromBlob,
 } from "./data/blob";
-export { getFreeDrawSvgPath } from "./renderer/renderElement";
-export { mergeLibraryItems, getLibraryItemsHash } from "./data/library";
+export { serializeAsJSON, serializeLibraryAsJSON } from "./data/json";
+export { getLibraryItemsHash, mergeLibraryItems } from "./data/library";
 export { isLinearElement } from "./element/typeChecks";
+export { getFreeDrawSvgPath } from "./renderer/renderElement";
 
 export {
+  DEFAULT_LASER_COLOR,
   FONT_FAMILY,
-  THEME,
   MIME_TYPES,
   ROUNDNESS,
-  DEFAULT_LASER_COLOR,
+  THEME,
 } from "./constants";
 
 export {
+  bumpVersion,
   mutateElement,
   newElementWith,
-  bumpVersion,
 } from "./element/mutateElement";
 
 export { StoreAction } from "./store";
@@ -262,25 +264,22 @@ export {
   viewportCoordsToSceneCoords,
 } from "./utils";
 
-export { Sidebar } from "./components/Sidebar/Sidebar";
-export { Button } from "./components/Button";
-export { Footer };
-export { MainMenu };
 export { useDevice } from "./components/App";
-export { WelcomeScreen };
-export { LiveCollaborationTrigger };
+export { Button } from "./components/Button";
+export { Sidebar } from "./components/Sidebar/Sidebar";
+export { Footer, LiveCollaborationTrigger, MainMenu, WelcomeScreen };
 
 export { DefaultSidebar } from "./components/DefaultSidebar";
 export { TTDDialog } from "./components/TTDDialog/TTDDialog";
 export { TTDDialogTrigger } from "./components/TTDDialog/TTDDialogTrigger";
 
-export { normalizeLink } from "./data/url";
 export { zoomToFitBounds } from "./actions/actionCanvas";
 export { convertToExcalidrawElements } from "./data/transform";
+export { normalizeLink } from "./data/url";
 export { getCommonBounds, getVisibleSceneBounds } from "./element/bounds";
 
 export {
+  elementPartiallyOverlapsWithOrContainsBBox,
   elementsOverlappingBBox,
   isElementInsideBBox,
-  elementPartiallyOverlapsWithOrContainsBBox,
 } from "../utils/withinBounds";

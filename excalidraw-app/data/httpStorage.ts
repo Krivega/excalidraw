@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // Inspired and partly copied from https://gitlab.com/kiliandeca/excalidraw-fork
 // MIT, Kilian Decaderincourt
 
@@ -10,6 +11,8 @@ import {
   encryptData,
   IV_LENGTH_BYTES,
 } from "../../packages/excalidraw/data/encryption";
+import type { RemoteExcalidrawElement } from "../../packages/excalidraw/data/reconcile";
+import { reconcileElements } from "../../packages/excalidraw/data/reconcile";
 import { restoreElements } from "../../packages/excalidraw/data/restore";
 import { getSceneVersion } from "../../packages/excalidraw/element";
 import {
@@ -39,8 +42,8 @@ export const isSavedToHttpStorage = (
 ): boolean => {
   if (portal.socket && portal.roomId && portal.roomKey) {
     const sceneVersion = getSceneVersion(elements);
-
-    return httpStorageSceneVersionCache.get(portal.socket) === sceneVersion;
+    const sceneVersionCache = httpStorageSceneVersionCache.get(portal.socket);
+    return sceneVersionCache === sceneVersion;
   }
   // if no room exists, consider the room saved so that we don't unnecessarily
   // prevent unload (there's nothing we could do at that point anyway)
@@ -49,36 +52,39 @@ export const isSavedToHttpStorage = (
 
 export const saveToHttpStorage = async ({
   portal,
-  elements,
   appState,
+  elements,
   HTTP_STORAGE_BACKEND_URL,
   token,
 }: {
   portal: Portal;
-  elements: readonly SyncableExcalidrawElement[];
   appState: AppState;
+  elements: readonly SyncableExcalidrawElement[];
   HTTP_STORAGE_BACKEND_URL: string;
   token?: string;
 }): Promise<SyncableExcalidrawElement[] | null> => {
   const { roomId, roomKey, socket } = portal;
+  const syncableElements = getSyncableElements(restoreElements(elements, null));
+
+  const sceneVersion = getSceneVersion(elements);
+  const sceneVersionSyncable = getSceneVersion(syncableElements);
+  const isSaved = isSavedToHttpStorage(portal, elements);
   if (
     // if no room exists, consider the room saved because there's nothing we can
     // do at this point
     !roomId ||
     !roomKey ||
     !socket ||
-    isSavedToHttpStorage(portal, elements)
+    isSaved
   ) {
     return null;
   }
 
-  const sceneVersion = getSceneVersion(elements);
   const headers = getHeaders({ token });
   const getResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
     { headers },
   );
-
   if (!getResponse.ok && getResponse.status !== 404) {
     return null;
   }
@@ -99,18 +105,22 @@ export const saveToHttpStorage = async ({
   // If room already exist, we compare scene versions to check
   // if we're up to date before saving our scene
   const buffer = await getResponse.arrayBuffer();
-  const sceneVersionFromRequest = parseSceneVersionFromRequest(buffer);
 
+  const existingElements = await getElementsFromBuffer(buffer, roomKey);
+
+  const elementsFromRequest = getSyncableElements(
+    restoreElements(existingElements, null),
+  );
+  const sceneVersionFromRequest = getSceneVersion(elementsFromRequest);
   if (sceneVersionFromRequest >= sceneVersion) {
     return null;
   }
 
-  const existingElements = await getElementsFromBuffer(buffer, roomKey);
-
   const reconciledElements = getSyncableElements(
-    restoreElements(existingElements, null),
+    reconcileElements(elements, existingElements, appState),
   );
 
+  // const reconciledElements = elementsFromRequest
   const result: boolean = await saveElementsToBackend({
     roomKey,
     roomId,
@@ -119,7 +129,6 @@ export const saveToHttpStorage = async ({
     HTTP_STORAGE_BACKEND_URL,
     token,
   });
-
   if (result) {
     httpStorageSceneVersionCache.set(socket, sceneVersion);
 
@@ -154,9 +163,9 @@ export const loadFromHttpStorage = async ({
   const elements = getSyncableElements(
     restoreElements(elementsFromBuffer, null),
   );
-
+  const sceneVersion = getSceneVersion(elements);
   if (socket) {
-    httpStorageSceneVersionCache.set(socket, getSceneVersion(elements));
+    httpStorageSceneVersionCache.set(socket, sceneVersion);
   }
 
   return elements;
@@ -165,7 +174,7 @@ export const loadFromHttpStorage = async ({
 const getElementsFromBuffer = async (
   buffer: ArrayBuffer,
   key: string,
-): Promise<readonly ExcalidrawElement[]> => {
+): Promise<readonly RemoteExcalidrawElement[]> => {
   // Buffer should contain both the IV (fixed length) and encrypted data
   const sceneVersion = parseSceneVersionFromRequest(buffer);
   const iv = new Uint8Array(
@@ -319,7 +328,7 @@ const parseSceneVersionFromRequest = (buffer: ArrayBuffer) => {
 const decryptElements = async (
   data: StoredScene,
   roomKey: string,
-): Promise<readonly ExcalidrawElement[]> => {
+): Promise<readonly RemoteExcalidrawElement[]> => {
   const ciphertext = data.ciphertext;
   const iv = data.iv;
 

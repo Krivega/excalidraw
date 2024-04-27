@@ -35,7 +35,6 @@ import {
   restoreElements,
   zoomToFitBounds,
 } from "../../packages/excalidraw/index";
-import { withBatchedUpdates } from "../../packages/excalidraw/reactUtils";
 import {
   Collaborator,
   ExcalidrawImperativeAPI,
@@ -73,7 +72,7 @@ import {
   updateStaleImageStatuses,
 } from "../data/FileManager";
 import { LocalData } from "../data/LocalData";
-import { getStorageBackend, storageBackend } from "../data/config";
+import { getStorageBackend } from "../data/config";
 import { resetBrowserStateVersions } from "../data/tabSync";
 import { collabErrorIndicatorAtom } from "./CollabError";
 import Portal from "./Portal";
@@ -129,6 +128,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private socketInitializationTimer?: number;
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
   private collaborators = new Map<SocketId, Collaborator>();
+  private syncPromise = Promise.resolve();
 
   constructor(props: CollabProps) {
     super(props);
@@ -199,6 +199,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.onUmmount = () => {
       unsubOnUserFollow();
       unsubOnScrollChange();
+      throttledRelayUserViewportBounds.cancel();
     };
 
     this.onOfflineStatusToggle();
@@ -233,7 +234,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     appJotaiStore.set(isOfflineAtom, !window.navigator.onLine);
   };
 
-  componentWillUnmount() {
+  async componentWillUnmount() {
     window.removeEventListener("online", this.onOfflineStatusToggle);
     window.removeEventListener("offline", this.onOfflineStatusToggle);
     window.removeEventListener(EVENT.POINTER_MOVE, this.onPointerMove);
@@ -254,7 +255,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
     clearTimeout(this.socketInitializationTimer);
 
-    this.beforeUnload();
+    this.cancelQueues();
+    await this.beforeUnload();
     this.onUnload();
     this.onUmmount?.();
   }
@@ -269,21 +271,19 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.destroySocketClient({ isUnload: true });
   };
 
-  private beforeUnload = withBatchedUpdates(() => {
-    const syncableElements = getSyncableElements(
-      this.getSceneElementsIncludingDeleted(),
-    );
-
-    if (
-      this.isCollaborating() &&
-      (this.fileManager.shouldPreventUnload(syncableElements) ||
-        !storageBackend?.isSaved(this.portal, syncableElements))
-    ) {
-      // this won't run in time if user decides to leave the site, but
-      //  the purpose is to run in immediately after user decides to stay
-      this.saveCollabRoomToFirebase(syncableElements);
-    }
-  });
+  private beforeUnload = async () => {
+    return this.syncPromise;
+    // const syncableElements = this.getSyncableElements();
+    // if (
+    //   this.isCollaborating() &&
+    //   (this.fileManager.shouldPreventUnload(syncableElements) ||
+    //     !storageBackend?.isSaved(this.portal, syncableElements))
+    // ) {
+    //   // this won't run in time if user decides to leave the site, but
+    //   //  the purpose is to run in immediately after user decides to stay
+    //   await this.saveToFirebase();
+    // }
+  };
 
   saveCollabRoomToFirebase = async (
     syncableElements: readonly SyncableExcalidrawElement[],
@@ -329,17 +329,16 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     }
   };
 
-  stopCollaboration = (keepRemoteState = true) => {
+  cancelQueues = () => {
     this.queueBroadcastAllElements.cancel();
     this.queueSaveToFirebase.cancel();
     this.loadImageFiles.cancel();
     this.resetErrorIndicator(true);
+  };
 
-    this.saveCollabRoomToFirebase(
-      getSyncableElements(
-        this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-      ),
-    );
+  stopCollaboration = (keepRemoteState = true) => {
+    this.saveToFirebase();
+    this.cancelQueues();
 
     if (this.portal.socket && this.fallbackInitializationHandler) {
       this.portal.socket.off(
@@ -361,14 +360,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
       LocalData.fileStorage.reset();
 
-      const elements = this.excalidrawAPI
-        .getSceneElementsIncludingDeleted()
-        .map((element) => {
-          if (isImageElement(element) && element.status === "saved") {
-            return newElementWith(element, { status: "pending" });
-          }
-          return element;
-        });
+      const localElements = this.getSceneElementsIncludingDeleted();
+      const elements = localElements.map((element) => {
+        if (isImageElement(element) && element.status === "saved") {
+          return newElementWith(element, { status: "pending" });
+        }
+        return element;
+      });
 
       this.excalidrawAPI.updateScene({
         elements,
@@ -378,6 +376,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   private destroySocketClient = (opts?: { isUnload: boolean }) => {
+    if (this.portal.socket && this.fallbackInitializationHandler) {
+      this.portal.socket.off(
+        "connect_error",
+        this.fallbackInitializationHandler,
+      );
+    }
+
     this.lastBroadcastedOrReceivedSceneVersion = -1;
     this.portal.close();
     this.fileManager.reset();
@@ -759,9 +764,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   private loadImageFiles = throttle(async () => {
+    const localElements = this.getSceneElementsIncludingDeleted();
     const { loadedFiles, erroredFiles } =
       await this.fetchImageFilesFromFirebase({
-        elements: this.excalidrawAPI.getSceneElementsIncludingDeleted(),
+        elements: localElements,
       });
 
     this.excalidrawAPI.addFiles(loadedFiles);
@@ -769,7 +775,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     updateStaleImageStatuses({
       excalidrawAPI: this.excalidrawAPI,
       erroredFiles,
-      elements: this.excalidrawAPI.getSceneElementsIncludingDeleted(),
+      elements: localElements,
     });
   }, LOAD_IMAGES_TIMEOUT);
 
@@ -883,6 +889,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     return this.excalidrawAPI.getSceneElementsIncludingDeleted();
   };
 
+  private getSyncableElements = () => {
+    const localElements = this.getSceneElementsIncludingDeleted();
+    const syncableElements = getSyncableElements(localElements);
+    return syncableElements;
+  };
+
   onPointerUpdate = throttle(
     (payload: {
       pointer: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["pointer"];
@@ -913,45 +925,76 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.portal.broadcastIdleChange(userState);
   };
 
-  broadcastElements = (elements: readonly OrderedExcalidrawElement[]) => {
+  broadcastElements = (
+    elements: readonly OrderedExcalidrawElement[],
+    { fireImmediately = false }: { fireImmediately?: boolean } = {},
+  ) => {
     if (
       getSceneVersion(elements) >
       this.getLastBroadcastedOrReceivedSceneVersion()
     ) {
       this.portal.broadcastScene(WS_SUBTYPES.UPDATE, elements, false);
       this.lastBroadcastedOrReceivedSceneVersion = getSceneVersion(elements);
-      this.queueBroadcastAllElements();
+
+      if (fireImmediately) {
+        this.broadcastAllElements();
+      } else {
+        this.queueBroadcastAllElements();
+      }
     }
   };
 
-  syncElements = (elements: readonly OrderedExcalidrawElement[]) => {
-    this.broadcastElements(elements);
-    this.queueSaveToFirebase();
+  syncElements = (
+    elements: readonly OrderedExcalidrawElement[],
+    { fireImmediately = false }: { fireImmediately?: boolean } = {},
+  ) => {
+    this.syncPromise = this._syncElements(elements, { fireImmediately });
+
+    this.syncPromise.finally(() => {
+      this.syncPromise = Promise.resolve();
+    });
+
+    return this.syncPromise;
+  };
+
+  _syncElements = async (
+    elements: readonly OrderedExcalidrawElement[],
+    { fireImmediately = false }: { fireImmediately?: boolean } = {},
+  ) => {
+    this.broadcastElements(elements, { fireImmediately });
+
+    if (fireImmediately) {
+      await this.saveToFirebase();
+    } else {
+      this.queueSaveToFirebase();
+    }
+  };
+
+  broadcastAllElements = () => {
+    const localElements = this.getSceneElementsIncludingDeleted();
+    this.portal.broadcastScene(WS_SUBTYPES.UPDATE, localElements, true);
+    const currentVersion = this.getLastBroadcastedOrReceivedSceneVersion();
+    const newVersion = Math.max(currentVersion, getSceneVersion(localElements));
+    this.setLastBroadcastedOrReceivedSceneVersion(newVersion);
   };
 
   queueBroadcastAllElements = throttle(() => {
-    this.portal.broadcastScene(
-      WS_SUBTYPES.UPDATE,
-      this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-      true,
-    );
-    const currentVersion = this.getLastBroadcastedOrReceivedSceneVersion();
-    const newVersion = Math.max(
-      currentVersion,
-      getSceneVersion(this.getSceneElementsIncludingDeleted()),
-    );
-    this.setLastBroadcastedOrReceivedSceneVersion(newVersion);
+    this.broadcastAllElements();
   }, SYNC_FULL_SCENE_INTERVAL_MS);
+
+  saveToFirebase = async () => {
+    if (this.portal.socketInitialized) {
+      const syncableElements = this.getSyncableElements();
+
+      await this.saveCollabRoomToFirebase(syncableElements).catch((error) => {
+        this.onError(error);
+      });
+    }
+  };
 
   queueSaveToFirebase = throttle(
     () => {
-      if (this.portal.socketInitialized) {
-        this.saveCollabRoomToFirebase(
-          getSyncableElements(
-            this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-          ),
-        );
-      }
+      this.saveToFirebase();
     },
     SYNC_FULL_SCENE_INTERVAL_MS,
     { leading: false },
@@ -1011,10 +1054,6 @@ declare global {
   interface Window {
     collab: InstanceType<typeof Collab>;
   }
-}
-
-if (import.meta.env.MODE === ENV.TEST || import.meta.env.DEV) {
-  window.collab = window.collab || ({} as Window["collab"]);
 }
 
 export default Collab;

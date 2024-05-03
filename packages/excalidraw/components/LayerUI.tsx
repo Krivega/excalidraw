@@ -83,7 +83,6 @@ interface LayerUIProps {
   children?: React.ReactNode;
   app: AppClassProperties;
   isCollaborating: boolean;
-  isLaserPointerButton: boolean;
   openAIKey: string | null;
   isOpenAIKeyPersisted: boolean;
   onOpenAIAPIKeyChange: (apiKey: string, shouldPersist: boolean) => void;
@@ -148,7 +147,6 @@ const LayerUI = ({
   children,
   app,
   isCollaborating,
-  isLaserPointerButton,
   openAIKey,
   isOpenAIKeyPersisted,
   onOpenAIAPIKeyChange,
@@ -306,7 +304,7 @@ const LayerUI = ({
                           />
                         </Stack.Row>
                       </Island>
-                      {isCollaborating && isLaserPointerButton && (
+                      {isCollaborating && UIOptions.isLaserPointerButton && (
                         <Island
                           style={{
                             marginLeft: 8,

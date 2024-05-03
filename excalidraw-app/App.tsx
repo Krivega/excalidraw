@@ -778,9 +778,9 @@ const ExcalidrawWrapper = ({
         onUnload={onUnload}
         initialData={initialStatePromiseRef.current.promise}
         isCollaborating={isCollaborating}
-        isLaserPointerButton={isLaserPointerButton}
         onPointerUpdate={collabAPI?.onPointerUpdate}
         UIOptions={{
+          isLaserPointerButton,
           canvasActions: {
             toggleTheme: true,
             export: {

@@ -362,15 +362,17 @@ export const ShapesSwitcher = ({
           >
             {t("toolBar.embeddable")}
           </DropdownMenu.Item>
-          <DropdownMenu.Item
-            onSelect={() => app.setActiveTool({ type: "laser" })}
-            icon={laserPointerToolIcon}
-            data-testid="toolbar-laser"
-            selected={laserToolSelected}
-            shortcut={KEYS.K.toLocaleUpperCase()}
-          >
-            {t("toolBar.laser")}
-          </DropdownMenu.Item>
+          {UIOptions.isLaserPointerButton && (
+            <DropdownMenu.Item
+              onSelect={() => app.setActiveTool({ type: "laser" })}
+              icon={laserPointerToolIcon}
+              data-testid="toolbar-laser"
+              selected={laserToolSelected}
+              shortcut={KEYS.K.toLocaleUpperCase()}
+            >
+              {t("toolBar.laser")}
+            </DropdownMenu.Item>
+          )}
           {/* <div style={{ margin: "6px 0", fontSize: 14, fontWeight: 600 }}>
             Generate
           </div>

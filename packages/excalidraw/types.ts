@@ -558,6 +558,7 @@ export type UIOptions = Partial<{
   tools: {
     image: boolean;
   };
+  isLaserPointerButton: boolean;
   /** @deprecated does nothing. Will be removed in 0.15 */
   welcomeScreen?: boolean;
 }>;
@@ -574,7 +575,6 @@ export type AppProps = Merge<
     detectScroll: boolean;
     handleKeyboardGlobally: boolean;
     isCollaborating: boolean;
-    isLaserPointerButton: boolean;
     children?: React.ReactNode;
     aiEnabled: boolean;
   }

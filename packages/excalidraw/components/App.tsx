@@ -1557,7 +1557,6 @@ class App extends React.Component<AppProps, AppState> {
                           }
                           app={this}
                           isCollaborating={this.props.isCollaborating}
-                          isLaserPointerButton={this.props.isLaserPointerButton}
                           openAIKey={this.OPENAI_KEY}
                           isOpenAIKeyPersisted={this.OPENAI_KEY_IS_PERSISTED}
                           onOpenAIAPIKeyChange={this.onOpenAIKeyChange}

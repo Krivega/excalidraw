@@ -289,6 +289,7 @@ type TProps = {
   wsServerUrl?: string;
   wsServerPath?: string;
   isCollaborating?: boolean;
+  isLaserPointerButton?: boolean;
   BACKEND_V2_POST: string;
   BACKEND_V2_GET: string;
   HTTP_STORAGE_BACKEND_URL: string;
@@ -311,6 +312,7 @@ const ExcalidrawWrapper = ({
   HTTP_STORAGE_BACKEND_URL,
   onError,
   isCollaborating: isCollaborationLink,
+  isLaserPointerButton,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [langCode, setLangCode] = useAtom(appLangCodeAtom);
@@ -776,6 +778,7 @@ const ExcalidrawWrapper = ({
         onUnload={onUnload}
         initialData={initialStatePromiseRef.current.promise}
         isCollaborating={isCollaborating}
+        isLaserPointerButton={isLaserPointerButton}
         onPointerUpdate={collabAPI?.onPointerUpdate}
         UIOptions={{
           canvasActions: {
@@ -1163,6 +1166,7 @@ const ExcalidrawApp = ({
   wsServerUrl,
   wsServerPath,
   isCollaborating,
+  isLaserPointerButton,
   BACKEND_V2_POST,
   BACKEND_V2_GET,
   HTTP_STORAGE_BACKEND_URL,
@@ -1183,6 +1187,7 @@ const ExcalidrawApp = ({
           wsServerUrl={wsServerUrl}
           wsServerPath={wsServerPath}
           isCollaborating={isCollaborating}
+          isLaserPointerButton={isLaserPointerButton}
           BACKEND_V2_POST={BACKEND_V2_POST}
           BACKEND_V2_GET={BACKEND_V2_GET}
           HTTP_STORAGE_BACKEND_URL={HTTP_STORAGE_BACKEND_URL}

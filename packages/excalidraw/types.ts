@@ -447,6 +447,7 @@ export interface ExcalidrawProps {
   initialData?: MaybePromise<ExcalidrawInitialDataState | null>;
   excalidrawAPI?: (api: ExcalidrawImperativeAPI) => void;
   isCollaborating?: boolean;
+  isLaserPointerButton?: boolean;
   onPointerUpdate?: (payload: {
     pointer: { x: number; y: number; tool: "pointer" | "laser" };
     button: "down" | "up";
@@ -573,6 +574,7 @@ export type AppProps = Merge<
     detectScroll: boolean;
     handleKeyboardGlobally: boolean;
     isCollaborating: boolean;
+    isLaserPointerButton: boolean;
     children?: React.ReactNode;
     aiEnabled: boolean;
   }

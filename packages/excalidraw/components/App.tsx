@@ -84,6 +84,7 @@ import {
 import {
   APP_NAME,
   CURSOR_TYPE,
+  DEFAULT_COLLISION_THRESHOLD,
   DEFAULT_MAX_IMAGE_WIDTH_OR_HEIGHT,
   DEFAULT_VERTICAL_ALIGN,
   DRAGGING_THRESHOLD,
@@ -120,7 +121,6 @@ import {
   isBrave,
   isIOS,
   supportsResizeObserver,
-  DEFAULT_COLLISION_THRESHOLD,
 } from "../constants";
 import {
   resetCursor,
@@ -185,12 +185,12 @@ import {
   fixBindingsAfterDeletion,
   fixBindingsAfterDuplication,
   getHoveredElementForBinding,
+  getSuggestedBindingsForArrows,
   isBindingEnabled,
   isLinearElementSimpleAndAlreadyBound,
   maybeBindLinearElement,
   shouldEnableBindingForPointerEvent,
   updateBoundElements,
-  getSuggestedBindingsForArrows,
 } from "../element/binding";
 import {
   hitElementBoundText,
@@ -1557,6 +1557,7 @@ class App extends React.Component<AppProps, AppState> {
                           }
                           app={this}
                           isCollaborating={this.props.isCollaborating}
+                          isLaserPointerButton={this.props.isLaserPointerButton}
                           openAIKey={this.OPENAI_KEY}
                           isOpenAIKeyPersisted={this.OPENAI_KEY_IS_PERSISTED}
                           onOpenAIAPIKeyChange={this.onOpenAIKeyChange}

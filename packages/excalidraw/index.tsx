@@ -27,6 +27,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     initialData,
     excalidrawAPI,
     isCollaborating = false,
+    isLaserPointerButton = true,
     onPointerUpdate,
     renderTopRightUI,
     langCode = defaultLang.code,
@@ -115,6 +116,7 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           initialData={initialData}
           excalidrawAPI={excalidrawAPI}
           isCollaborating={isCollaborating}
+          isLaserPointerButton={isLaserPointerButton}
           onPointerUpdate={onPointerUpdate}
           renderTopRightUI={renderTopRightUI}
           langCode={langCode}

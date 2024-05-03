@@ -156,10 +156,8 @@ export const loadFromHttpStorage = async ({
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
     { headers },
   );
-
   const buffer = await getResponse.arrayBuffer();
   const elementsFromBuffer = await getElementsFromBuffer(buffer, roomKey);
-
   const elements = getSyncableElements(
     restoreElements(elementsFromBuffer, null),
   );

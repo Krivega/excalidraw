@@ -200,6 +200,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       unsubOnUserFollow();
       unsubOnScrollChange();
       throttledRelayUserViewportBounds.cancel();
+
+      appJotaiStore.set(collabAPIAtom, null);
     };
 
     this.onOfflineStatusToggle();
@@ -339,7 +341,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   stopCollaboration = (keepRemoteState = true) => {
     this.saveToFirebase();
     this.cancelQueues();
-
     if (this.portal.socket && this.fallbackInitializationHandler) {
       this.portal.socket.off(
         "connect_error",
@@ -739,7 +740,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     }
     return null;
   };
-
   private _reconcileElements = (
     remoteElements: readonly ExcalidrawElement[],
   ): ReconciledExcalidrawElement[] => {

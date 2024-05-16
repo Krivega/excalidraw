@@ -1,11 +1,11 @@
 import type { Socket as ISocketIO } from "socket.io-client";
-import { SyncableExcalidrawElement } from ".";
-import {
+import type { SyncableExcalidrawElement } from ".";
+import type {
   ExcalidrawElement,
   FileId,
 } from "../../packages/excalidraw/element/types";
-import { AppState, BinaryFileData } from "../../packages/excalidraw/types";
-import Portal from "../collab/Portal";
+import type { AppState, BinaryFileData } from "../../packages/excalidraw/types";
+import type Portal from "../collab/Portal";
 
 export interface StorageBackend {
   isSaved: (portal: Portal, elements: readonly ExcalidrawElement[]) => boolean;

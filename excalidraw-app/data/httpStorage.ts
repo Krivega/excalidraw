@@ -3,7 +3,8 @@
 // MIT, Kilian Decaderincourt
 
 import type { Socket as ISocketIO } from "socket.io-client";
-import { getSyncableElements, SyncableExcalidrawElement } from ".";
+import type { SyncableExcalidrawElement } from ".";
+import { getSyncableElements } from ".";
 import { MIME_TYPES } from "../../packages/excalidraw/constants";
 import { decompressData } from "../../packages/excalidraw/data/encode";
 import {
@@ -15,19 +16,19 @@ import type { RemoteExcalidrawElement } from "../../packages/excalidraw/data/rec
 import { reconcileElements } from "../../packages/excalidraw/data/reconcile";
 import { restoreElements } from "../../packages/excalidraw/data/restore";
 import { getSceneVersion } from "../../packages/excalidraw/element";
-import {
+import type {
   ExcalidrawElement,
   FileId,
 } from "../../packages/excalidraw/element/types";
-import {
+import type {
   AppState,
   BinaryFileData,
   BinaryFileMetadata,
   DataURL,
 } from "../../packages/excalidraw/types";
-import Portal from "../collab/Portal";
+import type Portal from "../collab/Portal";
 import getHeaders from "./getHeaders";
-import { StoredScene } from "./StorageBackend";
+import type { StoredScene } from "./StorageBackend";
 
 const SCENE_VERSION_LENGTH_BYTES = 4;
 

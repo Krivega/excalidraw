@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import { vi } from "vitest";
 import { FONT_FAMILY } from "../constants";
-import { ExcalidrawElement } from "../element/types";
+import type { ExcalidrawElement } from "../element/types";
 import { Excalidraw } from "../index";
 import { CODES, KEYS } from "../keys";
 import { reseed } from "../random";

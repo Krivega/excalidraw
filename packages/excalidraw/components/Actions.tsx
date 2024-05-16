@@ -1,14 +1,18 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { actionToggleZenMode } from "../actions";
-import { ActionManager } from "../actions/manager";
+import type { ActionManager } from "../actions/manager";
 import { trackEvent } from "../analytics";
 import {
   shouldAllowVerticalAlign,
   suppportsHorizontalAlign,
 } from "../element/textElement";
-import { hasBoundTextElement, isTextElement } from "../element/typeChecks";
 import {
+  hasBoundTextElement,
+  isLinearElement,
+  isTextElement,
+} from "../element/typeChecks";
+import type {
   ExcalidrawElement,
   ExcalidrawElementType,
   NonDeletedElementsMap,
@@ -25,7 +29,7 @@ import {
 } from "../scene";
 import { hasStrokeColor } from "../scene/comparisons";
 import { SHAPES } from "../shapes";
-import { AppClassProperties, AppProps, UIAppState, Zoom } from "../types";
+import type { AppClassProperties, AppProps, UIAppState, Zoom } from "../types";
 import { capitalizeString, isTransparent } from "../utils";
 import { useDevice } from "./App";
 import Stack from "./Stack";
@@ -111,6 +115,11 @@ export const SelectedShapeActions = ({
   const showLinkIcon =
     targetElements.length === 1 || isSingleElementBoundContainer;
 
+  const showLineEditorAction =
+    !appState.editingLinearElement &&
+    targetElements.length === 1 &&
+    isLinearElement(targetElements[0]);
+
   return (
     <div className="panelColumn">
       <div>
@@ -170,8 +179,8 @@ export const SelectedShapeActions = ({
         <div className="buttonList">
           {renderAction("sendToBack")}
           {renderAction("sendBackward")}
-          {renderAction("bringToFront")}
           {renderAction("bringForward")}
+          {renderAction("bringToFront")}
         </div>
       </fieldset>
 
@@ -226,6 +235,7 @@ export const SelectedShapeActions = ({
             {renderAction("group")}
             {renderAction("ungroup")}
             {showLinkIcon && renderAction("hyperlink")}
+            {showLineEditorAction && renderAction("toggleLinearEditor")}
           </div>
         </fieldset>
       )}
@@ -330,8 +340,8 @@ export const ShapesSwitcher = ({
                 fontSize: 8,
                 fontFamily: "Cascadia, monospace",
                 position: "absolute",
-                background: "pink",
-                color: "black",
+                background: "var(--color-promo)",
+                color: "var(--color-surface-lowest)",
                 bottom: 3,
                 right: 4,
               }}

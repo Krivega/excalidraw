@@ -1,23 +1,25 @@
+import type {
+  SocketUpdateData,
+  SocketUpdateDataSource,
+  SyncableExcalidrawElement,
+} from "../data";
+import { isSyncableElement } from "../data";
+
+import type { TCollabClass } from "./Collab";
+
 import throttle from "lodash.throttle";
 import type { Socket } from "socket.io-client";
 import { StoreAction } from "../../packages/excalidraw";
 import { trackEvent } from "../../packages/excalidraw/analytics";
 import { encryptData } from "../../packages/excalidraw/data/encryption";
 import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
-import { OrderedExcalidrawElement } from "../../packages/excalidraw/element/types";
-import {
+import type { OrderedExcalidrawElement } from "../../packages/excalidraw/element/types";
+import type {
   OnUserFollowedPayload,
   SocketId,
   UserIdleState,
 } from "../../packages/excalidraw/types";
 import { FILE_UPLOAD_TIMEOUT, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
-import {
-  SocketUpdateData,
-  SocketUpdateDataSource,
-  SyncableExcalidrawElement,
-  isSyncableElement,
-} from "../data";
-import { TCollabClass } from "./Collab";
 
 class Portal {
   collab: TCollabClass;

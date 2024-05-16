@@ -16,7 +16,7 @@ import WelcomeScreen from "./components/welcome-screen/WelcomeScreen";
 import { DEFAULT_UI_OPTIONS } from "./constants";
 import { defaultLang } from "./i18n";
 import { jotaiScope, jotaiStore } from "./jotai";
-import { AppProps, ExcalidrawProps } from "./types";
+import type { AppProps, ExcalidrawProps } from "./types";
 
 polyfill();
 

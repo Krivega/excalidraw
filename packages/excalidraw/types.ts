@@ -1,18 +1,18 @@
-import React from "react";
-import { Point as RoughPoint } from "roughjs/bin/geometry";
-import { Action } from "./actions/types";
-import { Spreadsheet } from "./charts";
-import { ClipboardData } from "./clipboard";
+import type React from "react";
+import type { Point as RoughPoint } from "roughjs/bin/geometry";
+import type { Action } from "./actions/types";
+import type { Spreadsheet } from "./charts";
+import type { ClipboardData } from "./clipboard";
 import type App from "./components/App";
-import { ContextMenuItems } from "./components/ContextMenu";
+import type { ContextMenuItems } from "./components/ContextMenu";
 import type { IMAGE_MIME_TYPES, MIME_TYPES } from "./constants";
 import type { FileSystemHandle } from "./data/filesystem";
-import Library from "./data/library";
-import { ImportedDataState } from "./data/types";
-import { SuggestedBinding } from "./element/binding";
-import { LinearElementEditor } from "./element/linearElementEditor";
-import { MaybeTransformHandleType } from "./element/transformHandles";
-import {
+import type Library from "./data/library";
+import type { ImportedDataState } from "./data/types";
+import type { SuggestedBinding } from "./element/binding";
+import type { LinearElementEditor } from "./element/linearElementEditor";
+import type { MaybeTransformHandleType } from "./element/transformHandles";
+import type {
   Arrowhead,
   ChartType,
   ExcalidrawBindableElement,
@@ -35,11 +35,11 @@ import {
   TextAlign,
   Theme,
 } from "./element/types";
-import { Language } from "./i18n";
-import { isOverScrollBars } from "./scene/scrollbars";
-import { SnapLine } from "./snapping";
-import { StoreActionType } from "./store";
-import { MaybePromise, Merge, ValueOf } from "./utility-types";
+import type { Language } from "./i18n";
+import type { isOverScrollBars } from "./scene/scrollbars";
+import type { SnapLine } from "./snapping";
+import type { StoreActionType } from "./store";
+import type { MaybePromise, Merge, ValueOf } from "./utility-types";
 import type { throttleRAF } from "./utils";
 
 export type Point = Readonly<RoughPoint>;

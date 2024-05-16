@@ -23,18 +23,19 @@ import React, {
   useState,
 } from "react";
 import initialData from "../initialData";
+import type { ResolvablePromise } from "../utils";
 import {
-  ResolvablePromise,
   distance2d,
   fileOpen,
   resolvablePromise,
   withBatchedUpdates,
   withBatchedUpdatesThrottled,
 } from "../utils";
-import "./App.scss";
 import CustomFooter from "./CustomFooter";
 import MobileFooter from "./MobileFooter";
 import ExampleSidebar from "./sidebar/ExampleSidebar";
+
+import "./App.scss";
 
 type Comment = {
   x: number;

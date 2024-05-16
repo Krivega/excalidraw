@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Provider, useAtom, useAtomValue } from "jotai";
 import React from "react";
 import { actionToggleStats } from "../actions/actionToggleStats";
-import { ActionManager } from "../actions/manager";
+import type { ActionManager } from "../actions/manager";
 import { trackEvent } from "../analytics";
 import { isHandToolActive } from "../appState";
 import {
@@ -14,11 +14,12 @@ import {
 import { TunnelsContext, useInitializeTunnels } from "../context/tunnels";
 import { UIAppStateContext } from "../context/ui-appState";
 import { showSelectedShapeActions } from "../element";
-import { NonDeletedExcalidrawElement } from "../element/types";
-import { Language, t } from "../i18n";
+import type { NonDeletedExcalidrawElement } from "../element/types";
+import type { Language } from "../i18n";
+import { t } from "../i18n";
 import { jotaiScope } from "../jotai";
 import { calculateScrollCenter } from "../scene";
-import {
+import type {
   AppClassProperties,
   AppProps,
   AppState,
@@ -442,7 +443,7 @@ const LayerUI = ({
                 );
                 ShapeCache.delete(element);
               }
-              Scene.getScene(selectedElements[0])?.informMutation();
+              Scene.getScene(selectedElements[0])?.triggerUpdate();
             } else if (colorPickerType === "elementBackground") {
               setAppState({
                 currentItemBackgroundColor: color,

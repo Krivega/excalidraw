@@ -2,47 +2,40 @@ import clsx from "clsx";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { Provider, atom, useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StoreAction } from "../packages/excalidraw";
+import {
+  Excalidraw,
+  StoreAction,
+  defaultLang,
+  reconcileElements,
+} from "../packages/excalidraw";
 import { trackEvent } from "../packages/excalidraw/analytics";
 import { getDefaultAppState } from "../packages/excalidraw/appState";
-import { DEFAULT_CATEGORIES } from "../packages/excalidraw/components/CommandPalette/CommandPalette";
 import { ErrorDialog } from "../packages/excalidraw/components/ErrorDialog";
-import { openConfirmModal } from "../packages/excalidraw/components/OverwriteConfirm/OverwriteConfirmState";
-import Trans from "../packages/excalidraw/components/Trans";
-import { ExcalLogo } from "../packages/excalidraw/components/icons";
 import { EVENT, VERSION_TIMEOUT } from "../packages/excalidraw/constants";
 import { loadFromBlob } from "../packages/excalidraw/data/blob";
 import { useHandleLibrary } from "../packages/excalidraw/data/library";
-import {
-  RemoteExcalidrawElement,
-  reconcileElements,
-} from "../packages/excalidraw/data/reconcile";
-import {
-  RestoredDataState,
-  restoreAppState,
-} from "../packages/excalidraw/data/restore";
+import type { RestoredDataState } from "../packages/excalidraw/data/restore";
+import { restoreAppState } from "../packages/excalidraw/data/restore";
 import { newElementWith } from "../packages/excalidraw/element/mutateElement";
 import { isInitializedImageElement } from "../packages/excalidraw/element/typeChecks";
-import {
+import type {
   FileId,
   NonDeletedExcalidrawElement,
   OrderedExcalidrawElement,
 } from "../packages/excalidraw/element/types";
 import { useCallbackRefState } from "../packages/excalidraw/hooks/useCallbackRefState";
 import { t } from "../packages/excalidraw/i18n";
-import { Excalidraw, defaultLang } from "../packages/excalidraw/index";
 import { useAtomWithInitialValue } from "../packages/excalidraw/jotai";
 import polyfill from "../packages/excalidraw/polyfill";
-import {
+import type {
   AppState,
   BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
   UIAppState,
 } from "../packages/excalidraw/types";
-import { ResolutionType } from "../packages/excalidraw/utility-types";
+import type { ResolvablePromise } from "../packages/excalidraw/utils";
 import {
-  ResolvablePromise,
   debounce,
   getFrame,
   getVersion,
@@ -57,13 +50,12 @@ import {
   STORAGE_KEYS,
   SYNC_BROWSER_TABS_TIMEOUT,
 } from "./app_constants";
+import type { CollabAPI } from "./collab/Collab";
 import Collab, {
-  CollabAPI,
   collabAPIAtom,
   isCollaboratingAtom,
   isOfflineAtom,
 } from "./collab/Collab";
-import { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 import { exportToBackend, loadScene } from "./data";
 import { updateStaleImageStatuses } from "./data/FileManager";
@@ -72,9 +64,16 @@ import {
   LibraryLocalStorageMigrationAdapter,
   LocalData,
 } from "./data/LocalData";
-import { getStorageBackend, storageBackend } from "./data/config";
 import { importFromLocalStorage } from "./data/localStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
+
+import { DEFAULT_CATEGORIES } from "../packages/excalidraw/components/CommandPalette/CommandPalette";
+import { openConfirmModal } from "../packages/excalidraw/components/OverwriteConfirm/OverwriteConfirmState";
+import Trans from "../packages/excalidraw/components/Trans";
+import { ExcalLogo } from "../packages/excalidraw/components/icons";
+import type { RemoteExcalidrawElement } from "../packages/excalidraw/data/reconcile";
+import type { ResolutionType } from "../packages/excalidraw/utility-types";
+import { collabErrorIndicatorAtom } from "./collab/CollabError";
 import "./index.scss";
 import { shareDialogStateAtom } from "./share/ShareDialog";
 import { appThemeAtom, useHandleAppTheme } from "./useHandleAppTheme";
@@ -82,6 +81,38 @@ import { appThemeAtom, useHandleAppTheme } from "./useHandleAppTheme";
 polyfill();
 
 window.EXCALIDRAW_THROTTLE_RENDER = true;
+
+declare global {
+  interface BeforeInstallPromptEventChoiceResult {
+    outcome: "accepted" | "dismissed";
+  }
+
+  interface BeforeInstallPromptEvent extends Event {
+    prompt(): Promise<void>;
+    userChoice: Promise<BeforeInstallPromptEventChoiceResult>;
+  }
+
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
+// let pwaEvent: BeforeInstallPromptEvent | null = null;
+
+// Adding a listener outside of the component as it may (?) need to be
+// subscribed early to catch the event.
+//
+// Also note that it will fire only if certain heuristics are met (user has
+// used the app for some time, etc.)
+// window.addEventListener(
+//   "beforeinstallprompt",
+//   (event: BeforeInstallPromptEvent) => {
+//     // prevent Chrome <= 67 from automatically showing the prompt
+//     event.preventDefault();
+//     // cache for later use
+//     pwaEvent = event;
+//   },
+// );
 
 let isSelfEmbedding = false;
 
@@ -1145,6 +1176,21 @@ const ExcalidrawWrapper = ({
                 setAppTheme(
                   editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK,
                 );
+              },
+            },
+            {
+              label: t("labels.installPWA"),
+              category: DEFAULT_CATEGORIES.app,
+              predicate: () => !!pwaEvent,
+              perform: () => {
+                if (pwaEvent) {
+                  pwaEvent.prompt();
+                  pwaEvent.userChoice.then(() => {
+                    // event cannot be reused, but we'll hopefully
+                    // grab new one as the event should be fired again
+                    pwaEvent = null;
+                  });
+                }
               },
             },
           ]}

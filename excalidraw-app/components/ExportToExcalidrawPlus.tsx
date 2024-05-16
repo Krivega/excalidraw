@@ -11,12 +11,12 @@ import {
 } from "../../packages/excalidraw/data/encryption";
 import { serializeAsJSON } from "../../packages/excalidraw/data/json";
 import { isInitializedImageElement } from "../../packages/excalidraw/element/typeChecks";
-import {
+import type {
   FileId,
   NonDeletedExcalidrawElement,
 } from "../../packages/excalidraw/element/types";
 import { useI18n } from "../../packages/excalidraw/i18n";
-import {
+import type {
   AppState,
   BinaryFileData,
   BinaryFiles,

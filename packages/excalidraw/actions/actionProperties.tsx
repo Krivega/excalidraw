@@ -8,7 +8,7 @@ import {
 import { ButtonIconSelect } from "../components/ButtonIconSelect";
 import { ColorPicker } from "../components/ColorPicker/ColorPicker";
 import { IconPicker } from "../components/IconPicker";
-import { AppClassProperties, AppState, Primitive } from "../types";
+import type { AppClassProperties, AppState, Primitive } from "../types";
 // TODO barnabasmolnar/editor-redesign
 // TextAlignTopIcon, TextAlignBottomIcon,TextAlignMiddleIcon,
 // ArrowHead icons
@@ -74,7 +74,7 @@ import {
   isLinearElement,
   isUsingAdaptiveRadius,
 } from "../element/typeChecks";
-import {
+import type {
   Arrowhead,
   ExcalidrawElement,
   ExcalidrawLinearElement,
@@ -94,9 +94,9 @@ import {
   isSomeElementSelected,
 } from "../scene";
 import { hasStrokeColor } from "../scene/comparisons";
+import { StoreAction } from "../store";
 import { arrayToMap, getShortcutKey } from "../utils";
 import { register } from "./register";
-import { StoreAction } from "../store";
 
 const FONT_SIZE_RELATIVE_INCREASE_STEP = 0.1;
 
@@ -167,7 +167,7 @@ const offsetElementAfterFontResize = (
   prevElement: ExcalidrawTextElement,
   nextElement: ExcalidrawTextElement,
 ) => {
-  if (isBoundToContainer(nextElement)) {
+  if (isBoundToContainer(nextElement) || !nextElement.autoResize) {
     return nextElement;
   }
   return mutateElement(

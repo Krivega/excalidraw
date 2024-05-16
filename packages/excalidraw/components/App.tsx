@@ -4,12 +4,12 @@ import { flushSync } from "react-dom";
 import clsx from "clsx";
 import throttle from "lodash.throttle";
 import { nanoid } from "nanoid";
-import { RoughCanvas } from "roughjs/bin/canvas";
+import type { RoughCanvas } from "roughjs/bin/canvas";
 import rough from "roughjs/bin/rough";
 import { isPointInShape } from "../../utils/collision";
 import { exportToBlob } from "../../utils/export";
+import type { GeometricShape } from "../../utils/geometry/shape";
 import {
-  GeometricShape,
   getClosedCurveShape,
   getCurveShape,
   getEllipseShape,
@@ -57,11 +57,12 @@ import {
   actionSelectAllElementsInFrame,
 } from "../actions/actionFrame";
 import { createRedoAction, createUndoAction } from "../actions/actionHistory";
+import { actionTextAutoResize } from "../actions/actionTextAutoResize";
 import { actionToggleViewMode } from "../actions/actionToggleViewMode";
 import { ActionManager } from "../actions/manager";
 import { actions } from "../actions/register";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
-import { Action, ActionResult } from "../actions/types";
+import type { Action, ActionResult } from "../actions/types";
 import { trackEvent } from "../analytics";
 import { AnimatedTrail } from "../animated-trail";
 import { AnimationFrameHandler } from "../animation-frame-handler";
@@ -70,17 +71,15 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
-import {
-  PastedMixedContent,
-  copyTextToSystemClipboard,
-  parseClipboard,
-} from "../clipboard";
+import type { PastedMixedContent } from "../clipboard";
+import { copyTextToSystemClipboard, parseClipboard } from "../clipboard";
 import { COLOR_PALETTE } from "../colors";
 import {
   Hyperlink,
   hideHyperlinkToolip,
   showHyperlinkTooltip,
 } from "../components/hyperlink/Hyperlink";
+import type { EXPORT_IMAGE_TYPES } from "../constants";
 import {
   APP_NAME,
   CURSOR_TYPE,
@@ -93,7 +92,6 @@ import {
   ELEMENT_TRANSLATE_AMOUNT,
   ENV,
   EVENT,
-  EXPORT_IMAGE_TYPES,
   FRAME_STYLE,
   GRID_SIZE,
   IMAGE_MIME_TYPES,
@@ -128,7 +126,8 @@ import {
   setCursorForShape,
   setEraserCursor,
 } from "../cursor";
-import { ExportedElements, exportCanvas, loadFromBlob } from "../data";
+import type { ExportedElements } from "../data";
+import { exportCanvas, loadFromBlob } from "../data";
 import { EditorLocalStorage } from "../data/EditorLocalStorage";
 import {
   ImageURLToFile,
@@ -144,14 +143,14 @@ import {
   parseLibraryJSON,
   resizeImageFile,
 } from "../data/blob";
-import { FileSystemHandle, fileOpen } from "../data/filesystem";
+import type { FileSystemHandle } from "../data/filesystem";
+import { fileOpen } from "../data/filesystem";
 import Library, { distributeLibraryItemsOnSquareGrid } from "../data/library";
-import { MagicCacheData, diagramToHTML } from "../data/magic";
+import type { MagicCacheData } from "../data/magic";
+import { diagramToHTML } from "../data/magic";
 import { restore, restoreElements } from "../data/restore";
-import {
-  ExcalidrawElementSkeleton,
-  convertToExcalidrawElements,
-} from "../data/transform";
+import type { ExcalidrawElementSkeleton } from "../data/transform";
+import { convertToExcalidrawElements } from "../data/transform";
 import { isLocalLink, normalizeLink, toValidURL } from "../data/url";
 import {
   dragNewElement,
@@ -175,8 +174,8 @@ import {
   newLinearElement,
   newTextElement,
   redrawTextBoundingBox,
+  refreshTextDimensions,
   transformElements,
-  updateTextElement,
 } from "../element";
 import { ElementCanvasButtons } from "../element/ElementCanvasButtons";
 import {
@@ -255,7 +254,7 @@ import {
   isTextBindableContainer,
   isUsingAdaptiveRadius,
 } from "../element/typeChecks";
-import {
+import type {
   ExcalidrawBindableElement,
   ExcalidrawElement,
   ExcalidrawEmbeddableElement,
@@ -343,7 +342,10 @@ import {
   excludeElementsInFramesFromSelection,
   makeNextSelectedElementIds,
 } from "../scene/selection";
-import { RenderInteractiveSceneCallback, ScrollBars } from "../scene/types";
+import type {
+  RenderInteractiveSceneCallback,
+  ScrollBars,
+} from "../scene/types";
 import { getStateForZoom } from "../scene/zoom";
 import { findShapeByKey } from "../shapes";
 import {
@@ -358,7 +360,7 @@ import {
   snapResizingElements,
 } from "../snapping";
 import { Store, StoreAction } from "../store";
-import {
+import type {
   AppClassProperties,
   AppProps,
   AppState,
@@ -383,7 +385,7 @@ import {
   ToolType,
   UnsubscribeCallback,
 } from "../types";
-import { ValueOf } from "../utility-types";
+import type { ValueOf } from "../utility-types";
 import {
   addEventListener,
   arrayToMap,
@@ -413,11 +415,8 @@ import {
 } from "../utils";
 import { activeConfirmDialogAtom } from "./ActiveConfirmDialog";
 import BraveMeasureTextError from "./BraveMeasureTextError";
-import {
-  CONTEXT_MENU_SEPARATOR,
-  ContextMenu,
-  ContextMenuItems,
-} from "./ContextMenu";
+import type { ContextMenuItems } from "./ContextMenu";
+import { CONTEXT_MENU_SEPARATOR, ContextMenu } from "./ContextMenu";
 import { activeEyeDropperAtom } from "./EyeDropper";
 import FollowMode from "./FollowMode/FollowMode";
 import LayerUI from "./LayerUI";
@@ -725,10 +724,7 @@ class App extends React.Component<AppProps, AppState> {
       id: this.id,
     };
 
-    this.fonts = new Fonts({
-      scene: this.scene,
-      onSceneUpdated: this.onSceneUpdated,
-    });
+    this.fonts = new Fonts({ scene: this.scene });
     this.history = new History();
 
     this.actionManager.registerAll(actions);
@@ -951,7 +947,7 @@ class App extends React.Component<AppProps, AppState> {
     });
 
     if (updated) {
-      this.scene.informMutation();
+      this.scene.triggerUpdate();
     }
 
     // GC
@@ -1463,10 +1459,10 @@ class App extends React.Component<AppProps, AppState> {
     const selectedElements = this.scene.getSelectedElements(this.state);
     const { renderTopRightUI, renderCustomStats } = this.props;
 
-    const versionNonce = this.scene.getVersionNonce();
+    const sceneNonce = this.scene.getSceneNonce();
     const { elementsMap, visibleElements } =
       this.renderer.getRenderableElements({
-        versionNonce,
+        sceneNonce,
         zoom: this.state.zoom,
         offsetLeft: this.state.offsetLeft,
         offsetTop: this.state.offsetTop,
@@ -1684,7 +1680,7 @@ class App extends React.Component<AppProps, AppState> {
                           elementsMap={elementsMap}
                           allElementsMap={allElementsMap}
                           visibleElements={visibleElements}
-                          versionNonce={versionNonce}
+                          sceneNonce={sceneNonce}
                           selectionNonce={
                             this.state.selectionElement?.versionNonce
                           }
@@ -1706,7 +1702,7 @@ class App extends React.Component<AppProps, AppState> {
                           elementsMap={elementsMap}
                           visibleElements={visibleElements}
                           selectedElements={selectedElements}
-                          versionNonce={versionNonce}
+                          sceneNonce={sceneNonce}
                           selectionNonce={
                             this.state.selectionElement?.versionNonce
                           }
@@ -1830,7 +1826,7 @@ class App extends React.Component<AppProps, AppState> {
       );
     }
     this.magicGenerations.set(frameElement.id, data);
-    this.onSceneUpdated();
+    this.triggerRender();
   };
 
   private getTextFromElements(elements: readonly ExcalidrawElement[]) {
@@ -2455,7 +2451,7 @@ class App extends React.Component<AppProps, AppState> {
       this.history.record(increment.elementsChange, increment.appStateChange);
     });
 
-    this.scene.addCallback(this.onSceneUpdated);
+    this.scene.onUpdate(this.triggerRender);
     this.addEventListeners();
 
     if (this.props.autoFocus && this.excalidrawContainerRef.current) {
@@ -2507,6 +2503,7 @@ class App extends React.Component<AppProps, AppState> {
 
     this.renderer.destroy();
     this.scene = new Scene();
+    this.fonts = new Fonts({ scene: this.scene });
     this.renderer = new Renderer(this.scene);
     this.files = {};
     this.imageCache.clear();
@@ -3689,7 +3686,7 @@ class App extends React.Component<AppProps, AppState> {
           ShapeCache.delete(element);
         }
       });
-      this.scene.informMutation();
+      this.scene.triggerUpdate();
 
       this.addNewImagesToImageCache();
     },
@@ -3748,7 +3745,7 @@ class App extends React.Component<AppProps, AppState> {
     },
   );
 
-  private onSceneUpdated = () => {
+  private triggerRender = () => {
     this.setState({});
   };
 
@@ -4318,25 +4315,22 @@ class App extends React.Component<AppProps, AppState> {
   ) {
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
 
-    const updateElement = (
-      text: string,
-      originalText: string,
-      isDeleted: boolean,
-    ) => {
+    const updateElement = (nextOriginalText: string, isDeleted: boolean) => {
       this.scene.replaceAllElements([
         // Not sure why we include deleted elements as well hence using deleted elements map
         ...this.scene.getElementsIncludingDeleted().map((_element) => {
           if (_element.id === element.id && isTextElement(_element)) {
-            return updateTextElement(
-              _element,
-              getContainerElement(_element, elementsMap),
-              elementsMap,
-              {
-                text,
-                isDeleted,
-                originalText,
-              },
-            );
+            return newElementWith(_element, {
+              originalText: nextOriginalText,
+              isDeleted: isDeleted ?? _element.isDeleted,
+              // returns (wrapped) text and new dimensions
+              ...refreshTextDimensions(
+                _element,
+                getContainerElement(_element, elementsMap),
+                elementsMap,
+                nextOriginalText,
+              ),
+            });
           }
           return _element;
         }),
@@ -4359,15 +4353,15 @@ class App extends React.Component<AppProps, AppState> {
           viewportY - this.state.offsetTop,
         ];
       },
-      onChange: withBatchedUpdates((text) => {
-        updateElement(text, text, false);
+      onChange: withBatchedUpdates((nextOriginalText) => {
+        updateElement(nextOriginalText, false);
         if (isNonDeletedElement(element)) {
           updateBoundElements(element, elementsMap);
         }
       }),
-      onSubmit: withBatchedUpdates(({ text, viaKeyboard, originalText }) => {
-        const isDeleted = !text.trim();
-        updateElement(text, originalText, isDeleted);
+      onSubmit: withBatchedUpdates(({ viaKeyboard, nextOriginalText }) => {
+        const isDeleted = !nextOriginalText.trim();
+        updateElement(nextOriginalText, isDeleted);
         // select the created text element only if submitting via keyboard
         // (when submitting via click it should act as signal to deselect)
         if (!isDeleted && viaKeyboard) {
@@ -4412,7 +4406,7 @@ class App extends React.Component<AppProps, AppState> {
 
     // do an initial update to re-initialize element position since we were
     // modifying element's x/y for sake of editor (case: syncing to remote)
-    updateElement(element.text, element.originalText, false);
+    updateElement(element.originalText, false);
   }
 
   private deselectElements() {
@@ -5595,7 +5589,7 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       this.elementsPendingErasure = new Set(this.elementsPendingErasure);
-      this.onSceneUpdated();
+      this.triggerRender();
     }
   };
 
@@ -8087,7 +8081,7 @@ class App extends React.Component<AppProps, AppState> {
                     this.scene.getNonDeletedElementsMap(),
                   );
 
-                  this.scene.informMutation();
+                  this.scene.triggerUpdate();
                 }
               }
             }
@@ -8582,7 +8576,7 @@ class App extends React.Component<AppProps, AppState> {
 
   private restoreReadyToEraseElements = () => {
     this.elementsPendingErasure = new Set();
-    this.onSceneUpdated();
+    this.triggerRender();
   };
 
   private eraseElements = () => {
@@ -8996,7 +8990,7 @@ class App extends React.Component<AppProps, AppState> {
         files,
       );
       if (updatedFiles.size) {
-        this.scene.informMutation();
+        this.scene.triggerUpdate();
       }
     }
   };
@@ -9651,6 +9645,7 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     return [
+      CONTEXT_MENU_SEPARATOR,
       actionCut,
       actionCopy,
       actionPaste,
@@ -9663,6 +9658,7 @@ class App extends React.Component<AppProps, AppState> {
       actionPasteStyles,
       CONTEXT_MENU_SEPARATOR,
       actionGroup,
+      actionTextAutoResize,
       actionUnbindText,
       actionBindText,
       actionWrapTextInContainer,

@@ -3,12 +3,12 @@ import { DEFAULT_SIDEBAR, LIBRARY_SIDEBAR_TAB } from "../constants";
 import { useTunnels } from "../context/tunnels";
 import { useUIAppState } from "../context/ui-appState";
 import { t } from "../i18n";
-import { MarkOptional, Merge } from "../utility-types";
+import type { MarkOptional, Merge } from "../utility-types";
 import { composeEventHandlers } from "../utils";
 import { useExcalidrawSetAppState } from "./App";
 import { LibraryMenu } from "./LibraryMenu";
 import { Sidebar } from "./Sidebar/Sidebar";
-import { SidebarProps, SidebarTriggerProps } from "./Sidebar/common";
+import type { SidebarProps, SidebarTriggerProps } from "./Sidebar/common";
 import { withInternalFallback } from "./hoc/withInternalFallback";
 
 const DefaultSidebarTrigger = withInternalFallback(

@@ -1,6 +1,13 @@
 import { atom } from "jotai";
 import throttle from "lodash.throttle";
 import { PureComponent } from "react";
+import {
+  StoreAction,
+  getSceneVersion,
+  reconcileElements,
+  restoreElements,
+  zoomToFitBounds,
+} from "../../packages/excalidraw";
 import { ErrorDialog } from "../../packages/excalidraw/components/ErrorDialog";
 import {
   ACTIVE_THRESHOLD,
@@ -10,39 +17,32 @@ import {
   IDLE_THRESHOLD,
 } from "../../packages/excalidraw/constants";
 import { decryptData } from "../../packages/excalidraw/data/encryption";
-import {
+import type {
   ReconciledExcalidrawElement,
   RemoteExcalidrawElement,
-  reconcileElements,
 } from "../../packages/excalidraw/data/reconcile";
-import { ImportedDataState } from "../../packages/excalidraw/data/types";
+import type { ImportedDataState } from "../../packages/excalidraw/data/types";
 import { getVisibleSceneBounds } from "../../packages/excalidraw/element/bounds";
 import { newElementWith } from "../../packages/excalidraw/element/mutateElement";
 import {
   isImageElement,
   isInitializedImageElement,
 } from "../../packages/excalidraw/element/typeChecks";
-import {
+import type {
   ExcalidrawElement,
   InitializedExcalidrawImageElement,
   OrderedExcalidrawElement,
 } from "../../packages/excalidraw/element/types";
 import { AbortError } from "../../packages/excalidraw/errors";
 import { t } from "../../packages/excalidraw/i18n";
-import {
-  StoreAction,
-  getSceneVersion,
-  restoreElements,
-  zoomToFitBounds,
-} from "../../packages/excalidraw/index";
-import {
+import type {
   Collaborator,
   ExcalidrawImperativeAPI,
   Gesture,
   SocketId,
-  UserIdleState,
 } from "../../packages/excalidraw/types";
-import { Mutable, ValueOf } from "../../packages/excalidraw/utility-types";
+import { UserIdleState } from "../../packages/excalidraw/types";
+import type { Mutable, ValueOf } from "../../packages/excalidraw/utility-types";
 import {
   assertNever,
   resolvablePromise,
@@ -59,9 +59,11 @@ import {
   WS_EVENTS,
   WS_SUBTYPES,
 } from "../app_constants";
-import {
+import type {
   SocketUpdateDataSource,
   SyncableExcalidrawElement,
+} from "../data";
+import {
   generateCollaborationLinkData,
   getCollaborationLink,
   getSyncableElements,

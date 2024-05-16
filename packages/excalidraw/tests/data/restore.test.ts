@@ -2,16 +2,16 @@ import { vi } from "vitest";
 import { getDefaultAppState } from "../../appState";
 import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "../../constants";
 import * as restore from "../../data/restore";
-import { ImportedDataState } from "../../data/types";
+import type { ImportedDataState } from "../../data/types";
 import { newElementWith } from "../../element/mutateElement";
 import * as sizeHelpers from "../../element/sizeHelpers";
-import {
+import type {
   ExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
 } from "../../element/types";
-import { NormalizedZoomValue } from "../../types";
+import type { NormalizedZoomValue } from "../../types";
 import { API } from "../helpers/api";
 
 describe("restoreElements", () => {

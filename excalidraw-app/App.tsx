@@ -74,6 +74,7 @@ import { ExcalLogo } from "../packages/excalidraw/components/icons";
 import type { RemoteExcalidrawElement } from "../packages/excalidraw/data/reconcile";
 import type { ResolutionType } from "../packages/excalidraw/utility-types";
 import { collabErrorIndicatorAtom } from "./collab/CollabError";
+import { getStorageBackend, storageBackend } from "./data/config";
 import "./index.scss";
 import { shareDialogStateAtom } from "./share/ShareDialog";
 import { appThemeAtom, useHandleAppTheme } from "./useHandleAppTheme";

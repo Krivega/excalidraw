@@ -355,6 +355,12 @@ const ExcalidrawWrapper = ({
   const [appTheme, setAppTheme] = useAtom(appThemeAtom);
   const { editorTheme } = useHandleAppTheme();
 
+  useEffect(() => {
+    if (langCodeFromProps) {
+      setLangCode(langCodeFromProps);
+    }
+  }, [langCodeFromProps, setLangCode]);
+
   // initial state
   // ---------------------------------------------------------------------------
 

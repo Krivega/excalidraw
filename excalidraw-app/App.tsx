@@ -320,6 +320,7 @@ type TProps = {
   token?: string;
   wsServerUrl?: string;
   wsServerPath?: string;
+  langCode?: string;
   isCollaborating?: boolean;
   isLaserPointerButton?: boolean;
   BACKEND_V2_POST: string;
@@ -342,6 +343,7 @@ const ExcalidrawWrapper = ({
   BACKEND_V2_POST,
   BACKEND_V2_GET,
   HTTP_STORAGE_BACKEND_URL,
+  langCode: langCodeFromProps,
   onError,
   isCollaborating: isCollaborationLink,
   isLaserPointerButton,
@@ -503,7 +505,8 @@ const ExcalidrawWrapper = ({
         // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
           const localDataState = importFromLocalStorage();
-          let langCode = languageDetector.detect() || defaultLang.code;
+          let langCode =
+            langCodeFromProps || languageDetector.detect() || defaultLang.code;
           if (Array.isArray(langCode)) {
             langCode = langCode[0];
           }
@@ -589,6 +592,7 @@ const ExcalidrawWrapper = ({
     jsonId,
     jsonPrivateKey,
     externalUrl,
+    langCodeFromProps,
     roomId,
     roomKey,
     wsServerUrl,
@@ -1212,6 +1216,7 @@ const ExcalidrawApp = ({
   token,
   wsServerUrl,
   wsServerPath,
+  langCode,
   isCollaborating,
   isLaserPointerButton,
   BACKEND_V2_POST,
@@ -1233,6 +1238,7 @@ const ExcalidrawApp = ({
           token={token}
           wsServerUrl={wsServerUrl}
           wsServerPath={wsServerPath}
+          langCode={langCode}
           isCollaborating={isCollaborating}
           isLaserPointerButton={isLaserPointerButton}
           BACKEND_V2_POST={BACKEND_V2_POST}

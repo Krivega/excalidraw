@@ -467,6 +467,7 @@ export const ExitZenModeAction = ({
   showExitZenModeBtn: boolean;
 }) => (
   <button
+    type="button"
     className={clsx("disable-zen-mode", {
       "disable-zen-mode--visible": showExitZenModeBtn,
     })}

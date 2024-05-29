@@ -343,23 +343,18 @@ const ExcalidrawWrapper = ({
   BACKEND_V2_POST,
   BACKEND_V2_GET,
   HTTP_STORAGE_BACKEND_URL,
-  langCode: langCodeFromProps,
+  langCode: langCodeFromProps = Array.isArray(detectedLangCode)
+    ? detectedLangCode[0]
+    : detectedLangCode,
   onError,
   isCollaborating: isCollaborationLink,
   isLaserPointerButton,
 }: TProps) => {
   const [errorMessage, setErrorMessage] = useState("");
-  const [langCode, setLangCode] = useAtom(appLangCodeAtom);
   const isCollabDisabled = isRunningInIframe();
 
   const [appTheme, setAppTheme] = useAtom(appThemeAtom);
   const { editorTheme } = useHandleAppTheme();
-
-  useEffect(() => {
-    if (langCodeFromProps) {
-      setLangCode(langCodeFromProps);
-    }
-  }, [langCodeFromProps, setLangCode]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -511,12 +506,6 @@ const ExcalidrawWrapper = ({
         // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
           const localDataState = importFromLocalStorage();
-          let langCode =
-            langCodeFromProps || languageDetector.detect() || defaultLang.code;
-          if (Array.isArray(langCode)) {
-            langCode = langCode[0];
-          }
-          setLangCode(langCode);
           excalidrawAPI.updateScene({
             ...localDataState,
             storeAction: StoreAction.UPDATE,
@@ -591,14 +580,12 @@ const ExcalidrawWrapper = ({
     isCollabDisabled,
     collabAPI,
     excalidrawAPI,
-    setLangCode,
     username,
     isCollaborating,
     id,
     jsonId,
     jsonPrivateKey,
     externalUrl,
-    langCodeFromProps,
     roomId,
     roomKey,
     wsServerUrl,
@@ -614,10 +601,6 @@ const ExcalidrawWrapper = ({
       LocalData.flushSave();
     };
   }, []);
-
-  useEffect(() => {
-    languageDetector.cacheUserLanguage(langCode);
-  }, [langCode]);
 
   const updateScene = () => {
     if (excalidrawAPI) {
@@ -856,7 +839,7 @@ const ExcalidrawWrapper = ({
             },
           },
         }}
-        langCode={langCode}
+        langCode={langCodeFromProps}
         renderCustomStats={renderCustomStats}
         detectScroll={false}
         handleKeyboardGlobally={true}

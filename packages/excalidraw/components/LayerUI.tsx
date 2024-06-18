@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Provider, useAtom, useAtomValue } from "jotai";
 import React from "react";
-import { actionToggleStats } from "../actions/actionToggleStats";
+import { actionToggleStats } from "../actions";
 import type { ActionManager } from "../actions/manager";
 import { trackEvent } from "../analytics";
 import { isHandToolActive } from "../appState";
@@ -50,7 +50,6 @@ import { PenModeButton } from "./PenModeButton";
 import { Section } from "./Section";
 import { isSidebarDockedAtom } from "./Sidebar/Sidebar";
 import Stack from "./Stack";
-import { Stats } from "./Stats";
 import { UserList } from "./UserList";
 import Footer from "./footer/Footer";
 import MainMenu from "./main-menu/MainMenu";
@@ -61,6 +60,7 @@ import { ShapeCache } from "../scene/ShapeCache";
 import { LaserPointerButton } from "./LaserPointerButton";
 import "./LayerUI.scss";
 import { MagicSettings } from "./MagicSettings";
+import { Stats } from "./Stats";
 import { TTDDialog } from "./TTDDialog/TTDDialog";
 import "./Toolbar.scss";
 
@@ -240,6 +240,11 @@ const LayerUI = ({
       elements,
     );
 
+    const shouldShowStats =
+      appState.stats.open &&
+      !appState.zenModeEnabled &&
+      !appState.viewModeEnabled;
+
     return (
       <FixedSideContainer side="top">
         <div className="App-menu App-menu_top">
@@ -352,6 +357,15 @@ const LayerUI = ({
                 appState.openSidebar?.name !== DEFAULT_SIDEBAR.name) && (
                 <tunnels.DefaultSidebarTriggerTunnel.Out />
               )}
+            {shouldShowStats && (
+              <Stats
+                scene={app.scene}
+                onClose={() => {
+                  actionManager.executeAction(actionToggleStats);
+                }}
+                renderCustomStats={renderCustomStats}
+              />
+            )}
           </div>
         </div>
       </FixedSideContainer>
@@ -541,17 +555,6 @@ const LayerUI = ({
               showExitZenModeBtn={showExitZenModeBtn}
               renderWelcomeScreen={renderWelcomeScreen}
             />
-            {appState.showStats && (
-              <Stats
-                appState={appState}
-                setAppState={setAppState}
-                elements={elements}
-                onClose={() => {
-                  actionManager.executeAction(actionToggleStats);
-                }}
-                renderCustomStats={renderCustomStats}
-              />
-            )}
             {appState.scrolledOutside && (
               <button
                 type="button"

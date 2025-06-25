@@ -1,6 +1,6 @@
 {
   "name": "@krivega/excalidraw-app",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "homepage": ".",
   "type": "module",
   "exports": {

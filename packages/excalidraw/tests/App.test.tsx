@@ -1,17 +1,17 @@
-import ReactDOM from "react-dom";
-import * as StaticScene from "../renderer/staticScene";
+import { cleanup } from "./helpers/cleanup";
 import { reseed } from "../random";
-import { render, queryByTestId } from "../tests/test-utils";
+import * as StaticScene from "../renderer/staticScene";
+import { queryByTestId, render } from "../tests/test-utils";
 
-import { Excalidraw } from "../index";
 import { vi } from "vitest";
+import { Excalidraw } from "../index";
 
 const renderStaticScene = vi.spyOn(StaticScene, "renderStaticScene");
 
 describe("Test <App/>", () => {
   beforeEach(async () => {
-    // Unmount ReactDOM from root
-    ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+    // Cleanup previous renders
+    cleanup();
     localStorage.clear();
     renderStaticScene.mockClear();
     reseed(7);

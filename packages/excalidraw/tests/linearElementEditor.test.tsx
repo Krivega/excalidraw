@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import type {
   ExcalidrawElement,
@@ -43,7 +44,7 @@ describe("Test Linear Elements", () => {
 
   beforeEach(async () => {
     // Unmount ReactDOM from root
-    ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+    cleanup();
     localStorage.clear();
     renderInteractiveScene.mockClear();
     renderStaticScene.mockClear();

@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { KEYS } from "../keys";
 import { Excalidraw } from "../index";
 import { API } from "./helpers/api";

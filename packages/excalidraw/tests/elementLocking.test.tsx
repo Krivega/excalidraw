@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import { Excalidraw } from "../index";
 import { render } from "../tests/test-utils";
@@ -8,7 +9,7 @@ import { actionSelectAll } from "../actions";
 import { t } from "../i18n";
 import { mutateElement } from "../element/mutateElement";
 
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const mouse = new Pointer("mouse");
 const h = window.h;

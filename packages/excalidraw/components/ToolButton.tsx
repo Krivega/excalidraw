@@ -1,13 +1,13 @@
 import "./ToolIcon.scss";
 
+import clsx from "clsx";
 import type { CSSProperties } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import { useExcalidrawContainer } from "./App";
-import { AbortError } from "../errors";
-import Spinner from "./Spinner";
 import type { PointerType } from "../element/types";
+import { AbortError } from "../errors";
 import { isPromiseLike } from "../utils";
+import { useExcalidrawContainer } from "./App";
+import Spinner from "./Spinner";
 
 export type ToolButtonSize = "small" | "medium";
 
@@ -59,14 +59,23 @@ export const ToolButton = React.forwardRef((props: ToolButtonProps, ref) => {
   const { id: excalId } = useExcalidrawContainer();
   const innerRef = React.useRef(null);
   React.useImperativeHandle(ref, () => innerRef.current);
-  const sizeCn = `ToolIcon_size_${props.size}`;
+
+  // Set default values
+  const {
+    visible = true,
+    className = "",
+    size = "medium",
+    ...restProps
+  } = props;
+
+  const sizeCn = `ToolIcon_size_${size}`;
 
   const [isLoading, setIsLoading] = useState(false);
 
   const isMountedRef = useRef(true);
 
   const onClick = async (event: React.MouseEvent) => {
-    const ret = "onClick" in props && props.onClick?.(event);
+    const ret = "onClick" in restProps && restProps.onClick?.(event);
 
     if (isPromiseLike(ret)) {
       try {
@@ -96,11 +105,11 @@ export const ToolButton = React.forwardRef((props: ToolButtonProps, ref) => {
   const lastPointerTypeRef = useRef<PointerType | null>(null);
 
   if (
-    props.type === "button" ||
-    props.type === "icon" ||
-    props.type === "submit"
+    restProps.type === "button" ||
+    restProps.type === "icon" ||
+    restProps.type === "submit"
   ) {
-    const type = (props.type === "icon" ? "button" : props.type) as
+    const type = (restProps.type === "icon" ? "button" : restProps.type) as
       | "button"
       | "submit";
     return (
@@ -108,58 +117,58 @@ export const ToolButton = React.forwardRef((props: ToolButtonProps, ref) => {
         className={clsx(
           "ToolIcon_type_button",
           sizeCn,
-          props.className,
-          props.visible && !props.hidden
+          className,
+          visible && !restProps.hidden
             ? "ToolIcon_type_button--show"
             : "ToolIcon_type_button--hide",
           {
-            ToolIcon: !props.hidden,
-            "ToolIcon--selected": props.selected,
-            "ToolIcon--plain": props.type === "icon",
+            ToolIcon: !restProps.hidden,
+            "ToolIcon--selected": restProps.selected,
+            "ToolIcon--plain": restProps.type === "icon",
           },
         )}
-        style={props.style}
-        data-testid={props["data-testid"]}
-        hidden={props.hidden}
-        title={props.title}
-        aria-label={props["aria-label"]}
+        style={restProps.style}
+        data-testid={restProps["data-testid"]}
+        hidden={restProps.hidden}
+        title={restProps.title}
+        aria-label={restProps["aria-label"]}
         type={type}
         onClick={onClick}
         ref={innerRef}
-        disabled={isLoading || props.isLoading || !!props.disabled}
+        disabled={isLoading || restProps.isLoading || !!restProps.disabled}
       >
-        {(props.icon || props.label) && (
+        {(restProps.icon || restProps.label) && (
           <div
             className="ToolIcon__icon"
             aria-hidden="true"
-            aria-disabled={!!props.disabled}
+            aria-disabled={!!restProps.disabled}
           >
-            {props.icon || props.label}
-            {props.keyBindingLabel && (
+            {restProps.icon || restProps.label}
+            {restProps.keyBindingLabel && (
               <span className="ToolIcon__keybinding">
-                {props.keyBindingLabel}
+                {restProps.keyBindingLabel}
               </span>
             )}
-            {props.isLoading && <Spinner />}
+            {restProps.isLoading && <Spinner />}
           </div>
         )}
-        {props.showAriaLabel && (
+        {restProps.showAriaLabel && (
           <div className="ToolIcon__label">
-            {props["aria-label"]} {isLoading && <Spinner />}
+            {restProps["aria-label"]} {isLoading && <Spinner />}
           </div>
         )}
-        {props.children}
+        {restProps.children}
       </button>
     );
   }
 
   return (
     <label
-      className={clsx("ToolIcon", props.className)}
-      title={props.title}
+      className={clsx("ToolIcon", className)}
+      title={restProps.title}
       onPointerDown={(event) => {
         lastPointerTypeRef.current = event.pointerType || null;
-        props.onPointerDown?.({ pointerType: event.pointerType || null });
+        restProps.onPointerDown?.({ pointerType: event.pointerType || null });
       }}
       onPointerUp={() => {
         requestAnimationFrame(() => {
@@ -170,31 +179,27 @@ export const ToolButton = React.forwardRef((props: ToolButtonProps, ref) => {
       <input
         className={`ToolIcon_type_radio ${sizeCn}`}
         type="radio"
-        name={props.name}
-        aria-label={props["aria-label"]}
-        aria-keyshortcuts={props["aria-keyshortcuts"]}
-        data-testid={props["data-testid"]}
-        id={`${excalId}-${props.id}`}
+        name={restProps.name}
+        aria-label={restProps["aria-label"]}
+        aria-keyshortcuts={restProps["aria-keyshortcuts"]}
+        data-testid={restProps["data-testid"]}
+        id={`${excalId}-${restProps.id}`}
         onChange={() => {
-          props.onChange?.({ pointerType: lastPointerTypeRef.current });
+          restProps.onChange?.({ pointerType: lastPointerTypeRef.current });
         }}
-        checked={props.checked}
+        checked={restProps.checked}
         ref={innerRef}
       />
       <div className="ToolIcon__icon">
-        {props.icon}
-        {props.keyBindingLabel && (
-          <span className="ToolIcon__keybinding">{props.keyBindingLabel}</span>
+        {restProps.icon}
+        {restProps.keyBindingLabel && (
+          <span className="ToolIcon__keybinding">
+            {restProps.keyBindingLabel}
+          </span>
         )}
       </div>
     </label>
   );
 });
-
-ToolButton.defaultProps = {
-  visible: true,
-  className: "",
-  size: "medium",
-};
 
 ToolButton.displayName = "ToolButton";

@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import { render, fireEvent } from "./test-utils";
 import { Excalidraw } from "../index";
@@ -15,7 +16,7 @@ import { KEYS } from "../keys";
 import { vi } from "vitest";
 
 // Unmount ReactDOM from root
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const renderInteractiveScene = vi.spyOn(
   InteractiveCanvas,

@@ -54,6 +54,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
+    "vite-plugin-dts": "4.5.4",
     "vite-plugin-html": "3.2.2"
   },
   "prettier": "@excalidraw/prettier-config",

@@ -324,7 +324,7 @@ export const exportToBackend = async ({
     const headers = getHeaders({ token });
     const response = await fetch(BACKEND_V2_POST, {
       method: "POST",
-      body: payload.buffer,
+      body: payload.buffer as ArrayBuffer,
       headers,
     });
     const json = await response.json();

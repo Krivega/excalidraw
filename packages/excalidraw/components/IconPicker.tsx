@@ -1,10 +1,10 @@
 import React from "react";
 import { Popover } from "./Popover";
 
-import "./IconPicker.scss";
-import { isArrowKey, KEYS } from "../keys";
-import { getLanguage } from "../i18n";
 import clsx from "clsx";
+import { getLanguage } from "../i18n";
+import { isArrowKey, KEYS } from "../keys";
+import "./IconPicker.scss";
 
 function Picker<T>({
   options,
@@ -24,8 +24,8 @@ function Picker<T>({
   onChange: (value: T) => void;
   onClose: () => void;
 }) {
-  const rFirstItem = React.useRef<HTMLButtonElement>();
-  const rActiveItem = React.useRef<HTMLButtonElement>();
+  const rFirstItem = React.useRef<HTMLButtonElement>(null);
+  const rActiveItem = React.useRef<HTMLButtonElement>(null);
   const rGallery = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {

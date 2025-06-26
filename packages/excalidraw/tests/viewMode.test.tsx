@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { render, GlobalTestState } from "./test-utils";
 import { Excalidraw } from "../index";
 import { KEYS } from "../keys";

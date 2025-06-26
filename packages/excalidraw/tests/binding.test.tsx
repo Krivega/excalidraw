@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { fireEvent, render } from "./test-utils";
 import { Excalidraw } from "../index";
 import { UI, Pointer, Keyboard } from "./helpers/ui";

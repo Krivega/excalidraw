@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import {
   render,
@@ -17,7 +18,7 @@ import { SHAPES } from "../shapes";
 import { vi } from "vitest";
 
 // Unmount ReactDOM from root
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const renderInteractiveScene = vi.spyOn(
   InteractiveCanvas,

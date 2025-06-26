@@ -1,15 +1,17 @@
-import { useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
+import { useRef, useState } from "react";
 
-import { copyTextToSystemClipboard } from "../../packages/excalidraw/clipboard";
 import { trackEvent } from "../../packages/excalidraw/analytics";
-import { getFrame } from "../../packages/excalidraw/utils";
+import { copyTextToSystemClipboard } from "../../packages/excalidraw/clipboard";
 import { useI18n } from "../../packages/excalidraw/i18n";
 import { KEYS } from "../../packages/excalidraw/keys";
+import { getFrame } from "../../packages/excalidraw/utils";
 
 import { Dialog } from "../../packages/excalidraw/components/Dialog";
+import { FilledButton } from "../../packages/excalidraw/components/FilledButton";
 import {
   copyIcon,
+  LockedIcon,
   playerPlayIcon,
   playerStopFilledIcon,
   share,
@@ -18,9 +20,7 @@ import {
   tablerCheckIcon,
 } from "../../packages/excalidraw/components/icons";
 import { TextField } from "../../packages/excalidraw/components/TextField";
-import { FilledButton } from "../../packages/excalidraw/components/FilledButton";
 
-import { ReactComponent as CollabImage } from "../../packages/excalidraw/assets/lock.svg";
 import "./RoomDialog.scss";
 
 const getShareIcon = () => {
@@ -179,7 +179,7 @@ export const RoomModal = ({
   return (
     <>
       <div className="RoomDialog__inactive__illustration">
-        <CollabImage />
+        <div>{LockedIcon}</div>
       </div>
       <div className="RoomDialog__inactive__header">
         {t("labels.liveCollaboration")}

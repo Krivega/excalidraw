@@ -304,7 +304,7 @@ const saveElementsToBackend = async ({
   numberView.setUint32(0, sceneVersion, false);
   const sceneVersionBuffer = numberView.buffer;
   const payloadBlob = await new Response(
-    new Blob([sceneVersionBuffer, iv.buffer, ciphertext]),
+    new Blob([sceneVersionBuffer, iv.buffer as ArrayBuffer, ciphertext]),
   ).arrayBuffer();
   const headers = getHeaders({ token });
   const putResponse = await fetch(

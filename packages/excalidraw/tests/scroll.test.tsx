@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import {
   mockBoundingClientRect,
   render,

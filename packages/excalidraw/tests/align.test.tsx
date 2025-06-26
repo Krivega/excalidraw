@@ -1,19 +1,19 @@
-import ReactDOM from "react-dom";
-import { render } from "./test-utils";
-import { Excalidraw } from "../index";
-import { defaultLang, setLanguage } from "../i18n";
-import { UI, Pointer, Keyboard } from "./helpers/ui";
-import { API } from "./helpers/api";
-import { KEYS } from "../keys";
 import {
-  actionAlignVerticallyCentered,
-  actionAlignHorizontallyCentered,
-  actionGroup,
-  actionAlignTop,
   actionAlignBottom,
+  actionAlignHorizontallyCentered,
   actionAlignLeft,
   actionAlignRight,
+  actionAlignTop,
+  actionAlignVerticallyCentered,
+  actionGroup,
 } from "../actions";
+import { defaultLang, setLanguage } from "../i18n";
+import { Excalidraw } from "../index";
+import { KEYS } from "../keys";
+import { API } from "./helpers/api";
+import { cleanup } from "./helpers/cleanup";
+import { Keyboard, Pointer, UI } from "./helpers/ui";
+import { render } from "./test-utils";
 
 const { h } = window;
 
@@ -55,8 +55,7 @@ const createAndSelectTwoRectanglesWithDifferentSizes = () => {
 
 describe("aligning", () => {
   beforeEach(async () => {
-    // Unmount ReactDOM from root
-    ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+    cleanup();
     mouse.reset();
 
     await setLanguage(defaultLang);

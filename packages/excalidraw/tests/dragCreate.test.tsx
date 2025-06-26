@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import { Excalidraw } from "../index";
 import * as StaticScene from "../renderer/staticScene";
@@ -14,7 +15,7 @@ import { reseed } from "../random";
 import { vi } from "vitest";
 
 // Unmount ReactDOM from root
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const renderInteractiveScene = vi.spyOn(
   InteractiveScene,

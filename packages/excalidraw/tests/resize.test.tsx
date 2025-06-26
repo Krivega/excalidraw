@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import { render } from "./test-utils";
 import { reseed } from "../random";
@@ -16,7 +17,7 @@ import { isLinearElement } from "../element/typeChecks";
 import { LinearElementEditor } from "../element/linearElementEditor";
 import { arrayToMap } from "../utils";
 
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const { h } = window;
 const mouse = new Pointer("mouse");

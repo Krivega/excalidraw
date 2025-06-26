@@ -1,3 +1,4 @@
+import { cleanup } from "../tests/helpers/cleanup";
 import { queryByText } from "@testing-library/react";
 import ReactDOM from "react-dom";
 import { Excalidraw } from "../index";
@@ -23,7 +24,7 @@ import type {
 } from "./types";
 
 // Unmount ReactDOM from root
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const tab = "    ";
 const mouse = new Pointer("mouse");

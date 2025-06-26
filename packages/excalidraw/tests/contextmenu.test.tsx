@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import {
   render,
@@ -37,7 +38,7 @@ const checkpoint = (name: string) => {
 const mouse = new Pointer("mouse");
 
 // Unmount ReactDOM from root
-ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+cleanup();
 
 const renderStaticScene = vi.spyOn(StaticScene, "renderStaticScene");
 beforeEach(() => {

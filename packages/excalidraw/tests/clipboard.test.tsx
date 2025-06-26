@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { vi } from "vitest";
 import ReactDOM from "react-dom";
 import { render, waitFor, GlobalTestState } from "./test-utils";
@@ -64,7 +65,7 @@ const sleep = (ms: number) => {
 };
 
 beforeEach(async () => {
-  ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+  cleanup();
 
   localStorage.clear();
 

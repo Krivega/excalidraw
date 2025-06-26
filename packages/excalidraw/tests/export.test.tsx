@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { render, waitFor } from "./test-utils";
 import { Excalidraw } from "../index";
 import { API } from "./helpers/api";

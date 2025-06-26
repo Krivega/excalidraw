@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { render } from "./test-utils";
 import { API } from "./helpers/api";
 

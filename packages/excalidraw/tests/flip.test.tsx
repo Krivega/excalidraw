@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import ReactDOM from "react-dom";
 import {
   fireEvent,
@@ -43,7 +44,7 @@ generateIdFromFileSpy.mockImplementation(async () => "fileId" as FileId);
 
 beforeEach(async () => {
   // Unmount ReactDOM from root
-  ReactDOM.unmountComponentAtNode(document.getElementById("root")!);
+  cleanup();
 
   mouse.reset();
   localStorage.clear();

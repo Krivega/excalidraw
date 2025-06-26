@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { tryParseSpreadsheet } from "../charts";
 
 describe("tryParseSpreadsheet", () => {

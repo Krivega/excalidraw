@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { Excalidraw } from "../index";
 import type { ExcalidrawImperativeAPI } from "../types";
 import { resolvablePromise } from "../utils";

@@ -1,3 +1,4 @@
+import { cleanup } from "./helpers/cleanup";
 import { vi } from "vitest";
 import { fireEvent, render, waitFor } from "./test-utils";
 import { queryByTestId } from "@testing-library/react";

@@ -1,7 +1,7 @@
-import React from "react";
 import * as Sentry from "@sentry/browser";
-import { t } from "../../packages/excalidraw/i18n";
+import React from "react";
 import Trans from "../../packages/excalidraw/components/Trans";
+import { t } from "../../packages/excalidraw/i18n";
 
 interface TopErrorBoundaryState {
   hasError: boolean;
@@ -80,7 +80,9 @@ export class TopErrorBoundary extends React.Component<
             <Trans
               i18nKey="errorSplash.headingMain"
               button={(el) => (
-                <button onClick={() => window.location.reload()}>{el}</button>
+                <button onClick={() => window.location.reload()}>
+                  {el as React.ReactElement}
+                </button>
               )}
             />
           </div>
@@ -98,7 +100,7 @@ export class TopErrorBoundary extends React.Component<
                     }
                   }}
                 >
-                  {el}
+                  {el as React.ReactElement}
                 </button>
               )}
             />
@@ -123,7 +125,9 @@ export class TopErrorBoundary extends React.Component<
               <Trans
                 i18nKey="errorSplash.openIssueMessage"
                 button={(el) => (
-                  <button onClick={() => this.createGithubIssue()}>{el}</button>
+                  <button onClick={() => this.createGithubIssue()}>
+                    {el as React.ReactElement}
+                  </button>
                 )}
               />
             </div>

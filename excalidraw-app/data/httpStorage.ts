@@ -307,9 +307,6 @@ const saveElementsToBackend = async ({
     new Blob([sceneVersionBuffer, iv.buffer as ArrayBuffer, ciphertext]),
   ).arrayBuffer();
   const headers = getHeaders({ token });
-
-  headers.set("Content-Type", "application/json");
-  
   const putResponse = await fetch(
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
     {

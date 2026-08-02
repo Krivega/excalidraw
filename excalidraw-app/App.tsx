@@ -32,6 +32,7 @@ import type {
   BinaryFiles,
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
+  ExcalidrawProps,
   UIAppState,
 } from "../packages/excalidraw/types";
 import type { ResolvablePromise } from "../packages/excalidraw/utils";
@@ -75,6 +76,10 @@ import type { RemoteExcalidrawElement } from "../packages/excalidraw/data/reconc
 import type { ResolutionType } from "../packages/excalidraw/utility-types";
 import { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { getStorageBackend, storageBackend } from "./data/config";
+import {
+  getValidatedExternalSceneUrl,
+  preventInvalidLinkOpen,
+} from "./data/url";
 import "./index.scss";
 import { shareDialogStateAtom } from "./share/ShareDialog";
 import { appThemeAtom, useHandleAppTheme } from "./useHandleAppTheme";
@@ -235,7 +240,11 @@ const initializeScene = async (opts: {
     }
   } else if (externalUrl) {
     try {
-      const request = await fetch(window.decodeURIComponent(externalUrl));
+      const validatedExternalUrl = getValidatedExternalSceneUrl(externalUrl);
+      if (!validatedExternalUrl) {
+        throw new Error("Invalid external scene URL");
+      }
+      const request = await fetch(validatedExternalUrl);
       const data = await loadFromBlob(await request.blob(), null, null);
       if (
         !scene.elements.length ||
@@ -667,6 +676,15 @@ const ExcalidrawWrapper = ({
     }
   };
 
+  const onLinkOpen: NonNullable<ExcalidrawProps["onLinkOpen"]> = useCallback(
+    (element, event) => {
+      if (preventInvalidLinkOpen(element.link, event)) {
+        setErrorMessage(t("alerts.invalidLink"));
+      }
+    },
+    [],
+  );
+
   const [latestShareableLink, setLatestShareableLink] = useState<string | null>(
     null,
   );
@@ -803,6 +821,7 @@ const ExcalidrawWrapper = ({
         excalidrawAPI={excalidrawRefCallback}
         onChange={onChange}
         onUnload={onUnload}
+        onLinkOpen={onLinkOpen}
         initialData={initialStatePromiseRef.current.promise}
         isCollaborating={isCollaborating}
         onPointerUpdate={collabAPI?.onPointerUpdate}
